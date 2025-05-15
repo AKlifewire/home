@@ -4,6 +4,7 @@ import { HomeStack } from '../lib/home-stack';
 import { AuthStack } from '../cdk/stacks/AuthStack';
 import { StorageStack } from '../cdk/stacks/StorageStack';
 import { LambdaStack } from '../cdk/stacks/LambdaStack';
+import { IoTStack } from '../cdk/stacks/IoTStack';
 
 const app = new cdk.App();
 new HomeStack(app, 'HomeStack', {
@@ -33,3 +34,5 @@ new LambdaStack(app, 'LambdaStack', {
   app: 'SmartHomeApp',      // or your app name
   envName: 'dev',           // or your environment name
 });
+
+new IoTStack(app, 'IoTStack');

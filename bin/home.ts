@@ -2,6 +2,7 @@
 import * as cdk from 'aws-cdk-lib';
 import { HomeStack } from '../lib/home-stack';
 import { AuthStack } from '../cdk/stacks/AuthStack';
+import { StorageStack } from '../cdk/stacks/StorageStack';
 
 const app = new cdk.App();
 new HomeStack(app, 'HomeStack', {
@@ -24,3 +25,5 @@ new AuthStack(app, 'AuthStack', {
   appName: 'SmartHomeApp',
   envName: 'dev',
 });
+
+new StorageStack(app, 'StorageStack');

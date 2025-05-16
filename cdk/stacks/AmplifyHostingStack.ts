@@ -5,11 +5,14 @@ import * as codebuild from 'aws-cdk-lib/aws-codebuild';
 
 interface AmplifyHostingStackProps extends cdk.StackProps {
   domainName: string;
+  envName: string; // Add envName to props
 }
 
 export class AmplifyHostingStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: AmplifyHostingStackProps) {
     super(scope, id, props);
+
+    const envName = props.envName || 'dev';
 
     const sourceCodeProvider = new amplify.GitHubSourceCodeProvider({
       owner: 'AKlifewire',
@@ -17,7 +20,9 @@ export class AmplifyHostingStack extends cdk.Stack {
       oauthToken: cdk.SecretValue.secretsManager('GITHUB_TOKEN'), // Use your existing secret
     });
 
-    const amplifyApp = new amplify.App(this, 'SmartHomeFrontendApp', {
+    // Make Amplify App name unique per environment
+    const amplifyApp = new amplify.App(this, `SmartHomeFrontendApp-${envName}`, {
+      appName: `SmartHomeFrontendApp-${envName}`,
       sourceCodeProvider,
       environmentVariables: {
         NODE_ENV: 'production',
@@ -49,7 +54,8 @@ export class AmplifyHostingStack extends cdk.Stack {
       }),
     });
 
-    amplifyApp.addBranch('main'); // auto-deploy main branch
+    // If you use branches or domains, also make them unique:
+    amplifyApp.addBranch(`main-${envName}`); // auto-deploy main branch
 
     new cdk.CfnOutput(this, 'AmplifyAppUrl', {
       value: amplifyApp.appId,

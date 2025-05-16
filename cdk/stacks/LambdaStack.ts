@@ -1,4 +1,5 @@
 import { Stack, StackProps, Duration } from 'aws-cdk-lib';
+import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as iam from 'aws-cdk-lib/aws-iam';
@@ -69,7 +70,7 @@ export class LambdaStack extends Stack {
     });
 
     new lambda.Function(this, 'DeviceControlFunction', {
-      functionName: `SmartHomeApp-${envName}-lambda-device-control`, // <-- updated
+      functionName: `SmartHomeApp-${envName}-lambda-device-control-unique-${cdk.Stack.of(this).stackName}`,
       runtime: lambda.Runtime.NODEJS_18_X,
       code: lambda.Code.fromAsset(`${lambdaDir}/iot`),
       handler: 'index.handler',

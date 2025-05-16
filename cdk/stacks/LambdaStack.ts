@@ -52,9 +52,9 @@ export class LambdaStack extends Stack {
         role: lambdaRole,
         environment: {
           STAGE: props.envName,
-          UI_BUCKET: uiBucket.bucketName, // Pass the bucket name to the Lambda function
+          UI_BUCKET: uiBucket.bucketName,
         },
-        functionName: name === 'get-analytics' ? `get-analytics-${envName}` : undefined, // Set function name for get-analytics
+        functionName: `SmartHomeApp-${envName}-lambda-${name}`, // <-- updated
       });
 
       // Grant the Lambda function read access to the S3 bucket
@@ -69,7 +69,7 @@ export class LambdaStack extends Stack {
     });
 
     new lambda.Function(this, 'DeviceControlFunction', {
-      functionName: `/SmartHomeApp/${envName}/lambda/device-control`,
+      functionName: `SmartHomeApp-${envName}-lambda-device-control`, // <-- updated
       runtime: lambda.Runtime.NODEJS_18_X,
       code: lambda.Code.fromAsset(`${lambdaDir}/iot`),
       handler: 'index.handler',

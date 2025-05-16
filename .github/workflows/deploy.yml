@@ -50,4 +50,4 @@ jobs:
 
       # Step 7: Deploy CDK stacks
       - name: Deploy CDK Stacks
-        run: npx cdk deploy --all --require-approval never
+        run: npx cdk deploy --all --require-approval never -c env=prod

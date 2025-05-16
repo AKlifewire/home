@@ -3,9 +3,15 @@ import { Construct } from 'constructs';
 import * as iot from 'aws-cdk-lib/aws-iot';
 import * as iam from 'aws-cdk-lib/aws-iam';
 
+export interface IoTStackProps extends cdk.StackProps {
+  envName: string;
+}
+
 export class IoTStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+  constructor(scope: Construct, id: string, props: IoTStackProps) {
     super(scope, id, props);
+
+    const envName = props.envName || 'dev';
 
     // IoT Policy for your devices
     const iotPolicy = new iot.CfnPolicy(this, 'DevicePolicy', {
@@ -24,13 +30,13 @@ export class IoTStack extends cdk.Stack {
           }
         ]
       },
-      policyName: 'SmartHomeIoTPolicy',
+      policyName: `SmartHomeIoTPolicy-${envName}`, // Make policy name unique
     });
 
     // Example Topic Rule (Trigger Lambda or Bedrock AI)
     const topicRule = new iot.CfnTopicRule(this, 'AutomationTriggerRule', {
       topicRulePayload: {
-        sql: "SELECT * FROM 'smart/home/+/status'",
+        sql: `SELECT * FROM 'smart/home/${envName}/+/status'`, // Optionally add envName to topic
         actions: [
           {
             lambda: {
@@ -45,12 +51,12 @@ export class IoTStack extends cdk.Stack {
     // Export outputs for use in other stacks (like AIStack)
     new cdk.CfnOutput(this, 'IoTTopicRuleName', {
       value: topicRule.ref,
-      exportName: 'IoTTopicRuleName'
+      exportName: `IoTTopicRuleName-${envName}` // Make export name unique
     });
 
     new cdk.CfnOutput(this, 'IoTPolicyName', {
       value: iotPolicy.policyName!,
-      exportName: 'IoTPolicyName'
+      exportName: `IoTPolicyName-${envName}` // Make export name unique
     });
   }
 }

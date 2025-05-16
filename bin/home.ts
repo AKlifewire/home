@@ -24,6 +24,6 @@ new LambdaStack(app, `LambdaStack-${envName}`, {
   envName, // pass envName to the stack
   env,
 });
-new IoTStack(app, `IoTStack-${envName}`, { env });
+new IoTStack(app, `IoTStack-${envName}`, { envName, env });
 new AppSyncStack(app, `AppSyncStack-${envName}`, { env });
 new AmplifyHostingStack(app, `AmplifyHostingStack-${envName}`, { domainName: 'your-domain.com', env });

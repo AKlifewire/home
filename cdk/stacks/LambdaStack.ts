@@ -5,6 +5,7 @@ import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
 import * as s3 from 'aws-cdk-lib/aws-s3';
+import { createLambdaSsmParameter } from '../utils/auto-ssm';
 
 interface LambdaStackProps extends StackProps {
   app: string;
@@ -55,18 +56,14 @@ export class LambdaStack extends Stack {
           STAGE: props.envName,
           UI_BUCKET: uiBucket.bucketName,
         },
-        functionName: `SmartHomeApp-${envName}-lambda-${name}`, // <-- updated
+        functionName: `SmartHomeApp-${envName}-lambda-${name}`,
       });
 
-      // Grant the Lambda function read access to the S3 bucket
       uiBucket.grantRead(fn);
-
       this.lambdaFunctions[name] = fn;
 
-      new ssm.StringParameter(this, `${name}FunctionParam`, {
-        parameterName: `/${props.app}/${props.envName}/lambda/${name}`,
-        stringValue: fn.functionName,
-      });
+      // Use the helper for SSM parameter
+      createLambdaSsmParameter(this, props.app, envName, name, fn.functionName);
     });
 
     new lambda.Function(this, 'DeviceControlFunction', {

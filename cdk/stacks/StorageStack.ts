@@ -7,11 +7,13 @@ import * as s3deploy from 'aws-cdk-lib/aws-s3-deployment';
 export class StorageStack extends Stack {
   public readonly uiBucket: s3.Bucket;
 
-  constructor(scope: Construct, id: string, props?: StackProps) {
+  constructor(scope: Construct, id: string, props?: StackProps & { envName?: string }) {
     super(scope, id, props);
 
+    const envName = props?.envName || 'dev'; // Get from props or default
+
     this.uiBucket = new s3.Bucket(this, 'UiPageBucket', {
-      bucketName: 'your-ui-pages-bucket-name',
+      bucketName: `your-ui-pages-bucket-name-${envName}`, // Make bucket name unique per environment
       removalPolicy: RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
       publicReadAccess: false,

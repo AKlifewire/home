@@ -67,5 +67,18 @@ export class LambdaStack extends Stack {
         stringValue: fn.functionName,
       });
     });
+
+    new lambda.Function(this, 'DeviceControlFunction', {
+      functionName: `/SmartHomeApp/${envName}/lambda/device-control`,
+      runtime: lambda.Runtime.NODEJS_18_X,
+      code: lambda.Code.fromAsset(`${lambdaDir}/iot`),
+      handler: 'index.handler',
+      timeout: Duration.seconds(10),
+      role: lambdaRole,
+      environment: {
+        STAGE: props.envName,
+        UI_BUCKET: uiBucket.bucketName,
+      },
+    });
   }
 }

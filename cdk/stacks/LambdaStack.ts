@@ -41,6 +41,8 @@ export class LambdaStack extends Stack {
       ],
     });
 
+    const envName = props.envName || 'dev'; // Get from props or default
+
     lambdaConfigs.forEach(({ name, path }) => {
       const fn = new lambda.Function(this, `${name}Function`, {
         runtime: lambda.Runtime.NODEJS_18_X,
@@ -52,6 +54,7 @@ export class LambdaStack extends Stack {
           STAGE: props.envName,
           UI_BUCKET: uiBucket.bucketName, // Pass the bucket name to the Lambda function
         },
+        functionName: name === 'get-analytics' ? `get-analytics-${envName}` : undefined, // Set function name for get-analytics
       });
 
       // Grant the Lambda function read access to the S3 bucket

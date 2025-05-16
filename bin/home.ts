@@ -19,7 +19,11 @@ const env = {
 new HomeStack(app, `HomeStack-${envName}`, { env });
 new AuthStack(app, `AuthStack-${envName}`, { appName: 'SmartHomeApp', envName, env });
 new StorageStack(app, `StorageStack-${envName}`, { env });
-new LambdaStack(app, `LambdaStack-${envName}`, { app: 'SmartHomeApp', envName, env });
+new LambdaStack(app, `LambdaStack-${envName}`, {
+  app: 'SmartHomeApp',
+  envName, // pass envName to the stack
+  env,
+});
 new IoTStack(app, `IoTStack-${envName}`, { env });
 new AppSyncStack(app, `AppSyncStack-${envName}`, { env });
 new AmplifyHostingStack(app, `AmplifyHostingStack-${envName}`, { domainName: 'your-domain.com', env });

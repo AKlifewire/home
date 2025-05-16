@@ -6,6 +6,7 @@ import { StorageStack } from '../cdk/stacks/StorageStack';
 import { LambdaStack } from '../cdk/stacks/LambdaStack';
 import { IoTStack } from '../cdk/stacks/IoTStack';
 import { AppSyncStack } from '../cdk/stacks/AppSyncStack';
+import { AmplifyHostingStack } from '../cdk/stacks/AmplifyHostingStack';
 
 const app = new cdk.App();
 new HomeStack(app, 'HomeStack', {
@@ -39,3 +40,7 @@ new LambdaStack(app, 'LambdaStack', {
 new IoTStack(app, 'IoTStack');
 
 new AppSyncStack(app, 'AppSyncStack');
+
+new AmplifyHostingStack(app, 'AmplifyHostingStack', {
+  domainName: 'your-domain.com', // Replace with your actual domain or required prop
+});

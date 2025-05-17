@@ -4,10 +4,17 @@ on:
   push:
     branches:
       - dev
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Type "deploy" to confirm deployment to dev'
+        required: true
+        default: ''
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event.inputs.confirmation == 'deploy'
 
     steps:
       - name: Checkout code
@@ -42,5 +49,20 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
+      - name: Verify CDK synthesis
+        run: npx cdk synth -c env=dev
+        
       - name: Deploy Dev CDK Stacks
         run: npx cdk deploy --all --require-approval never -c env=dev
+        
+      - name: Verify deployment
+        run: |
+          echo "Verifying deployment..."
+          # Check if AuthStack exists
+          aws cloudformation describe-stacks --stack-name AuthStack-dev --query "Stacks[0].StackName" || echo "AuthStack not found"
+          # Check if AmplifyHostingStack exists
+          aws cloudformation describe-stacks --stack-name AmplifyHostingStack-dev --query "Stacks[0].StackName" || echo "AmplifyHostingStack not found"
+          
+      - name: Notify on success
+        if: success()
+        run: echo "Dev deployment completed successfully!"

@@ -13,7 +13,7 @@ export class StorageStack extends Stack {
     const envName = props?.envName || 'dev'; // Get from props or default
 
     this.uiBucket = new s3.Bucket(this, 'UiPageBucket', {
-      bucketName: `your-ui-pages-bucket-name-${envName}`, // Make bucket name unique per environment
+      bucketName: `smart-home-ui-pages-${envName}-${this.account}`, // Make bucket name unique per environment
       removalPolicy: RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
       publicReadAccess: false,

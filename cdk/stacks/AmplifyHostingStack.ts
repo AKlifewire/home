@@ -26,12 +26,14 @@ export class AmplifyHostingStack extends cdk.Stack {
       sourceCodeProvider,
       environmentVariables: {
         NODE_ENV: 'production',
+        ENV_NAME: envName,
       },
       autoBranchCreation: {
         patterns: ['main'],
         pullRequestPreview: true,
         environmentVariables: {
           NODE_ENV: 'production',
+          ENV_NAME: envName,
         },
       },
       buildSpec: codebuild.BuildSpec.fromObject({
@@ -57,16 +59,16 @@ export class AmplifyHostingStack extends cdk.Stack {
     // If you use branches or domains, also make them unique:
     amplifyApp.addBranch(`main-${envName}`); // auto-deploy main branch
 
-    new cdk.CfnOutput(this, 'AmplifyAppUrl', {
+    new cdk.CfnOutput(this, `AmplifyAppUrl-${envName}`, {
       value: amplifyApp.appId,
-      description: 'Amplify App ID for frontend',
-      exportName: 'AmplifyAppId',
+      description: `Amplify App ID for frontend (${envName})`,
+      exportName: `AmplifyAppId-${envName}`,
     });
 
-    new cdk.CfnOutput(this, 'AmplifyDefaultDomain', {
+    new cdk.CfnOutput(this, `AmplifyDefaultDomain-${envName}`, {
       value: amplifyApp.defaultDomain,
-      description: 'Default Amplify Domain',
-      exportName: 'AmplifyDefaultDomain',
+      description: `Default Amplify Domain (${envName})`,
+      exportName: `AmplifyDefaultDomain-${envName}`,
     });
   }
 }

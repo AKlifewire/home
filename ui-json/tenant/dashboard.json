@@ -1,1 +1,173 @@
-{}
+{
+  "version": "1.0",
+  "title": "Tenant Dashboard",
+  "description": "Tenant dashboard for controlling assigned devices",
+  "layout": {
+    "type": "responsive",
+    "columns": 12,
+    "padding": 16
+  },
+  "sections": [
+    {
+      "id": "header",
+      "type": "header",
+      "title": "My Smart Home",
+      "subtitle": "Control your connected devices",
+      "actions": [
+        {
+          "id": "refresh",
+          "label": "Refresh",
+          "icon": "refresh",
+          "action": "refreshDevices"
+        },
+        {
+          "id": "profile",
+          "label": "Profile",
+          "icon": "person",
+          "action": "openProfile"
+        }
+      ]
+    },
+    {
+      "id": "deviceSummary",
+      "type": "summary",
+      "title": "My Devices",
+      "items": [
+        {
+          "id": "totalDevices",
+          "label": "My Devices",
+          "value": "${totalDevices}",
+          "icon": "devices"
+        },
+        {
+          "id": "activeDevices",
+          "label": "Active",
+          "value": "${activeDevices}",
+          "icon": "check_circle"
+        },
+        {
+          "id": "offlineDevices",
+          "label": "Offline",
+          "value": "${offlineDevices}",
+          "icon": "error"
+        }
+      ]
+    },
+    {
+      "id": "quickActions",
+      "type": "actionPanel",
+      "title": "Quick Actions",
+      "actions": [
+        {
+          "id": "allOn",
+          "label": "All Lights On",
+          "icon": "lightbulb",
+          "action": "controlGroup",
+          "params": {
+            "deviceType": "light",
+            "state": "on"
+          }
+        },
+        {
+          "id": "allOff",
+          "label": "All Lights Off",
+          "icon": "lightbulb_outline",
+          "action": "controlGroup",
+          "params": {
+            "deviceType": "light",
+            "state": "off"
+          }
+        },
+        {
+          "id": "requestDevice",
+          "label": "Request Device",
+          "icon": "add_circle",
+          "action": "requestDevice"
+        }
+      ]
+    },
+    {
+      "id": "deviceList",
+      "type": "deviceGrid",
+      "title": "My Devices",
+      "filter": true,
+      "search": true,
+      "deviceTypes": [
+        {
+          "type": "esp32",
+          "icon": "memory",
+          "color": "#4285F4",
+          "actions": ["control", "view"]
+        },
+        {
+          "type": "sensor",
+          "icon": "sensors",
+          "color": "#0F9D58",
+          "actions": ["view"]
+        },
+        {
+          "type": "switch",
+          "icon": "toggle_on",
+          "color": "#F4B400",
+          "actions": ["control", "view"]
+        }
+      ],
+      "emptyState": {
+        "message": "No devices assigned to you",
+        "action": {
+          "label": "Request Device",
+          "icon": "add",
+          "action": "requestDevice"
+        }
+      }
+    },
+    {
+      "id": "energyUsage",
+      "type": "chart",
+      "title": "Energy Usage",
+      "chartType": "line",
+      "timeRange": "24h",
+      "metrics": [
+        {
+          "id": "totalEnergy",
+          "label": "Total Energy",
+          "color": "#4285F4"
+        }
+      ]
+    }
+  ],
+  "navigation": {
+    "items": [
+      {
+        "id": "home",
+        "label": "Home",
+        "icon": "home",
+        "route": "/"
+      },
+      {
+        "id": "devices",
+        "label": "Devices",
+        "icon": "devices",
+        "route": "/devices"
+      },
+      {
+        "id": "scenes",
+        "label": "Scenes",
+        "icon": "auto_fix_high",
+        "route": "/scenes"
+      },
+      {
+        "id": "energy",
+        "label": "Energy",
+        "icon": "bolt",
+        "route": "/energy"
+      },
+      {
+        "id": "profile",
+        "label": "Profile",
+        "icon": "person",
+        "route": "/profile"
+      }
+    ]
+  }
+}

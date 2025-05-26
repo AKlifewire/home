@@ -1,1 +1,221 @@
-{}
+{
+  "version": "1.0",
+  "title": "Owner Dashboard",
+  "description": "Owner dashboard with full device control and tenant management",
+  "layout": {
+    "type": "responsive",
+    "columns": 12,
+    "padding": 16
+  },
+  "sections": [
+    {
+      "id": "header",
+      "type": "header",
+      "title": "Smart Home Control Center",
+      "subtitle": "Manage your devices and tenants",
+      "actions": [
+        {
+          "id": "refresh",
+          "label": "Refresh",
+          "icon": "refresh",
+          "action": "refreshDashboard"
+        },
+        {
+          "id": "settings",
+          "label": "Settings",
+          "icon": "settings",
+          "action": "openSettings"
+        }
+      ]
+    },
+    {
+      "id": "systemSummary",
+      "type": "summary",
+      "title": "System Overview",
+      "items": [
+        {
+          "id": "totalDevices",
+          "label": "Total Devices",
+          "value": "${totalDevices}",
+          "icon": "devices"
+        },
+        {
+          "id": "activeDevices",
+          "label": "Active Devices",
+          "value": "${activeDevices}",
+          "icon": "check_circle"
+        },
+        {
+          "id": "offlineDevices",
+          "label": "Offline Devices",
+          "value": "${offlineDevices}",
+          "icon": "error"
+        },
+        {
+          "id": "totalTenants",
+          "label": "Tenants",
+          "value": "${totalTenants}",
+          "icon": "people"
+        }
+      ]
+    },
+    {
+      "id": "quickActions",
+      "type": "actionPanel",
+      "title": "Quick Actions",
+      "actions": [
+        {
+          "id": "addDevice",
+          "label": "Add Device",
+          "icon": "add_circle",
+          "action": "addDevice"
+        },
+        {
+          "id": "addTenant",
+          "label": "Add Tenant",
+          "icon": "person_add",
+          "action": "addTenant"
+        },
+        {
+          "id": "allOn",
+          "label": "All Lights On",
+          "icon": "lightbulb",
+          "action": "controlGroup",
+          "params": {
+            "deviceType": "light",
+            "state": "on"
+          }
+        },
+        {
+          "id": "allOff",
+          "label": "All Lights Off",
+          "icon": "lightbulb_outline",
+          "action": "controlGroup",
+          "params": {
+            "deviceType": "light",
+            "state": "off"
+          }
+        },
+        {
+          "id": "energyReport",
+          "label": "Energy Report",
+          "icon": "bolt",
+          "action": "viewEnergyReport"
+        }
+      ]
+    },
+    {
+      "id": "deviceList",
+      "type": "deviceGrid",
+      "title": "All Devices",
+      "filter": true,
+      "search": true,
+      "deviceTypes": [
+        {
+          "type": "esp32",
+          "icon": "memory",
+          "color": "#4285F4",
+          "actions": ["control", "view", "delete", "assign"]
+        },
+        {
+          "type": "sensor",
+          "icon": "sensors",
+          "color": "#0F9D58",
+          "actions": ["view", "delete", "assign"]
+        },
+        {
+          "type": "switch",
+          "icon": "toggle_on",
+          "color": "#F4B400",
+          "actions": ["control", "view", "delete", "assign"]
+        }
+      ],
+      "emptyState": {
+        "message": "No devices found",
+        "action": {
+          "label": "Add Device",
+          "icon": "add",
+          "action": "addDevice"
+        }
+      }
+    },
+    {
+      "id": "tenantList",
+      "type": "tenantGrid",
+      "title": "Tenants",
+      "search": true,
+      "emptyState": {
+        "message": "No tenants found",
+        "action": {
+          "label": "Add Tenant",
+          "icon": "person_add",
+          "action": "addTenant"
+        }
+      }
+    },
+    {
+      "id": "energyUsage",
+      "type": "chart",
+      "title": "Energy Usage",
+      "chartType": "line",
+      "timeRange": "24h",
+      "metrics": [
+        {
+          "id": "totalEnergy",
+          "label": "Total Energy",
+          "color": "#4285F4"
+        },
+        {
+          "id": "lighting",
+          "label": "Lighting",
+          "color": "#F4B400"
+        },
+        {
+          "id": "appliances",
+          "label": "Appliances",
+          "color": "#0F9D58"
+        }
+      ]
+    }
+  ],
+  "navigation": {
+    "items": [
+      {
+        "id": "dashboard",
+        "label": "Dashboard",
+        "icon": "dashboard",
+        "route": "/owner"
+      },
+      {
+        "id": "devices",
+        "label": "Devices",
+        "icon": "devices",
+        "route": "/owner/devices"
+      },
+      {
+        "id": "tenants",
+        "label": "Tenants",
+        "icon": "people",
+        "route": "/owner/tenants"
+      },
+      {
+        "id": "automation",
+        "label": "Automation",
+        "icon": "auto_fix_high",
+        "route": "/owner/automation"
+      },
+      {
+        "id": "analytics",
+        "label": "Analytics",
+        "icon": "insights",
+        "route": "/owner/analytics"
+      },
+      {
+        "id": "settings",
+        "label": "Settings",
+        "icon": "settings",
+        "route": "/owner/settings"
+      }
+    ]
+  }
+}

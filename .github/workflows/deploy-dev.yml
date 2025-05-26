@@ -1,68 +1,39 @@
-name: Deploy Dev CDK Stacks
+name: Deploy to Dev Environment
 
 on:
   push:
     branches:
-      - dev
+      - develop
   workflow_dispatch:
-    inputs:
-      confirmation:
-        description: 'Type "deploy" to confirm deployment to dev'
-        required: true
-        default: ''
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' || github.event.inputs.confirmation == 'deploy'
-
+    environment: dev
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Set up Node.js
+        
+      - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 18
-
+          node-version: '18'
+          cache: 'npm'
+          
       - name: Install dependencies
-        run: npm install
-
-      - name: Build Lambda code
-        run: npm run build
-
-      - name: Create Lambda asset folders (if needed)
-        run: |
-          mkdir -p dist/lambdas/resolvers
-          mkdir -p dist/lambdas/automation
-          mkdir -p dist/lambdas/iot
-          mkdir -p dist/lambdas/stripe
-          echo "// placeholder" > dist/lambdas/resolvers/index.js
-          echo "// placeholder" > dist/lambdas/automation/index.js
-          echo "// placeholder" > dist/lambdas/iot/index.js
-          echo "// placeholder" > dist/lambdas/stripe/index.js
-
+        run: npm ci
+        
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v3
+        uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-
-      - name: Verify CDK synthesis
-        run: npx cdk synth -c env=dev
-        
-      - name: Deploy Dev CDK Stacks
-        run: npx cdk deploy --all --require-approval never -c env=dev
-        
-      - name: Verify deployment
-        run: |
-          echo "Verifying deployment..."
-          # Check if AuthStack exists
-          aws cloudformation describe-stacks --stack-name AuthStack-dev --query "Stacks[0].StackName" || echo "AuthStack not found"
-          # Check if AmplifyHostingStack exists
-          aws cloudformation describe-stacks --stack-name AmplifyHostingStack-dev --query "Stacks[0].StackName" || echo "AmplifyHostingStack not found"
+          aws-region: ${{ secrets.AWS_REGION }}
           
-      - name: Notify on success
-        if: success()
-        run: echo "Dev deployment completed successfully!"
+      - name: Build CDK app
+        run: npm run build
+        
+      - name: Deploy CDK stacks
+        run: |
+          npx cdk deploy --all --require-approval never --context environment=dev

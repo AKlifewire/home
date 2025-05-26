@@ -1,0 +1,130 @@
+type Query {
+  getUiPage(userId: ID!, deviceType: String): UIPageResult
+  getMyDevices(userId: ID!): DeviceListResult
+  getDeviceState(deviceId: ID!): DeviceStateResult
+  getAnalytics(deviceId: ID!, timeRange: String): AnalyticsResult
+  getUiJson(userId: String, deviceType: String, uiType: String): UiJsonResult
+}
+
+type Mutation {
+  controlRelay(deviceId: ID!, relayId: String!, state: Boolean!): DeviceCommandResult
+  registerDevice(userId: ID!, deviceCode: String!): DeviceRegistrationResult
+  removeDevice(userId: ID!, deviceId: ID!): DeviceRegistrationResult
+}
+
+type Subscription {
+  onDeviceUpdate(deviceId: ID!): DeviceState
+  onDeviceAdded(userId: ID!): Device
+}
+
+type UIPageResult {
+  success: Boolean!
+  data: UIPage
+}
+
+type UIPage {
+  title: String
+  layout: AWSJSON
+  components: [UIComponent]
+}
+
+type UIComponent {
+  id: ID!
+  type: String!
+  properties: AWSJSON
+}
+
+type DeviceListResult {
+  success: Boolean!
+  devices: [Device]
+}
+
+type Device {
+  id: ID!
+  name: String
+  type: String!
+  location: String
+  capabilities: [String]
+  relays: [Relay]
+  sensors: [Sensor]
+  firmware: String
+  lastConnected: AWSDateTime
+  userId: ID!
+}
+
+type Relay {
+  id: ID!
+  name: String
+  state: Boolean
+  deviceId: ID!
+}
+
+type Sensor {
+  id: ID!
+  name: String
+  type: String!
+  value: Float
+  unit: String
+  deviceId: ID!
+}
+
+type DeviceCommandResult {
+  success: Boolean!
+  message: String
+  deviceId: ID
+  relayId: String
+  newState: Boolean
+}
+
+type DeviceRegistrationResult {
+  success: Boolean!
+  message: String
+  device: Device
+}
+
+type DeviceStateResult {
+  success: Boolean!
+  state: DeviceState
+}
+
+type DeviceState {
+  deviceId: ID!
+  online: Boolean!
+  relayStates: [RelayState]
+  sensorReadings: [SensorReading]
+  lastUpdated: AWSDateTime
+}
+
+type RelayState {
+  relayId: String!
+  state: Boolean!
+}
+
+type SensorReading {
+  sensorId: String!
+  value: Float!
+  timestamp: AWSDateTime
+}
+
+type AnalyticsResult {
+  success: Boolean!
+  data: AnalyticsData
+}
+
+type AnalyticsData {
+  deviceId: ID
+  metrics: [MetricPoint]
+  insights: [String]
+}
+
+type UiJsonResult {
+  success: Boolean!
+  data: AWSJSON
+  message: String
+}
+
+type MetricPoint {
+  timestamp: AWSDateTime
+  value: Float
+  type: String
+}

@@ -1,5 +1,5 @@
 {
-  "app": "npx ts-node --prefer-ts-exts bin/home.ts",
+  "app": "npx ts-node --prefer-ts-exts cdk/app.ts",
   "watch": {
     "include": [
       "**"
@@ -17,6 +17,9 @@
     ]
   },
   "context": {
+    "environment": "dev",
+    "appName": "smart-home",
+    "adminEmail": "admin@example.com",
     "@aws-cdk/aws-lambda:recognizeLayerVersion": true,
     "@aws-cdk/core:checkSecretUsage": true,
     "@aws-cdk/core:target-partitions": [

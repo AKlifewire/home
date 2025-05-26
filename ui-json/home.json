@@ -1,7 +1,7 @@
 {
   "version": "1.0",
-  "title": "Admin Dashboard",
-  "description": "Administrative dashboard with advanced controls",
+  "title": "Smart Home Dashboard",
+  "description": "Main dashboard for smart home devices",
   "layout": {
     "type": "responsive",
     "columns": 12,
@@ -11,14 +11,14 @@
     {
       "id": "header",
       "type": "header",
-      "title": "Admin Dashboard",
-      "subtitle": "System administration and monitoring",
+      "title": "Smart Home Dashboard",
+      "subtitle": "Monitor and control your devices",
       "actions": [
         {
           "id": "refresh",
           "label": "Refresh",
           "icon": "refresh",
-          "action": "refreshDashboard"
+          "action": "refreshDevices"
         },
         {
           "id": "settings",
@@ -29,9 +29,9 @@
       ]
     },
     {
-      "id": "systemSummary",
+      "id": "deviceSummary",
       "type": "summary",
-      "title": "System Overview",
+      "title": "Device Overview",
       "items": [
         {
           "id": "totalDevices",
@@ -50,56 +50,13 @@
           "label": "Offline Devices",
           "value": "${offlineDevices}",
           "icon": "error"
-        },
-        {
-          "id": "totalUsers",
-          "label": "Total Users",
-          "value": "${totalUsers}",
-          "icon": "people"
-        }
-      ]
-    },
-    {
-      "id": "quickActions",
-      "type": "actionPanel",
-      "title": "Admin Actions",
-      "actions": [
-        {
-          "id": "addDevice",
-          "label": "Add Device",
-          "icon": "add_circle",
-          "action": "addDevice"
-        },
-        {
-          "id": "addUser",
-          "label": "Add User",
-          "icon": "person_add",
-          "action": "addUser"
-        },
-        {
-          "id": "systemSettings",
-          "label": "System Settings",
-          "icon": "settings",
-          "action": "systemSettings"
-        },
-        {
-          "id": "logs",
-          "label": "View Logs",
-          "icon": "list",
-          "action": "viewLogs"
-        },
-        {
-          "id": "clearCache",
-          "label": "Clear UI Cache",
-          "icon": "refresh",
-          "action": "clearUiCache"
         }
       ]
     },
     {
       "id": "deviceList",
       "type": "deviceGrid",
-      "title": "All Devices",
+      "title": "Your Devices",
       "filter": true,
       "search": true,
       "deviceTypes": [
@@ -132,26 +89,35 @@
       }
     },
     {
-      "id": "systemMetrics",
-      "type": "chart",
-      "title": "System Metrics",
-      "chartType": "line",
-      "timeRange": "24h",
-      "metrics": [
+      "id": "quickActions",
+      "type": "actionPanel",
+      "title": "Quick Actions",
+      "actions": [
         {
-          "id": "deviceConnections",
-          "label": "Device Connections",
-          "color": "#4285F4"
+          "id": "allOn",
+          "label": "All Lights On",
+          "icon": "lightbulb",
+          "action": "controlGroup",
+          "params": {
+            "deviceType": "light",
+            "state": "on"
+          }
         },
         {
-          "id": "apiCalls",
-          "label": "API Calls",
-          "color": "#0F9D58"
+          "id": "allOff",
+          "label": "All Lights Off",
+          "icon": "lightbulb_outline",
+          "action": "controlGroup",
+          "params": {
+            "deviceType": "light",
+            "state": "off"
+          }
         },
         {
-          "id": "errors",
-          "label": "Errors",
-          "color": "#DB4437"
+          "id": "addDevice",
+          "label": "Add Device",
+          "icon": "add_circle",
+          "action": "addDevice"
         }
       ]
     }
@@ -159,40 +125,34 @@
   "navigation": {
     "items": [
       {
-        "id": "dashboard",
-        "label": "Dashboard",
-        "icon": "dashboard",
-        "route": "/admin"
+        "id": "home",
+        "label": "Home",
+        "icon": "home",
+        "route": "/"
       },
       {
         "id": "devices",
         "label": "Devices",
         "icon": "devices",
-        "route": "/admin/devices"
+        "route": "/devices"
       },
       {
-        "id": "users",
-        "label": "Users",
-        "icon": "people",
-        "route": "/admin/users"
+        "id": "automation",
+        "label": "Automation",
+        "icon": "auto_fix_high",
+        "route": "/automation"
       },
       {
         "id": "analytics",
         "label": "Analytics",
         "icon": "insights",
-        "route": "/admin/analytics"
-      },
-      {
-        "id": "logs",
-        "label": "Logs",
-        "icon": "list",
-        "route": "/admin/logs"
+        "route": "/analytics"
       },
       {
         "id": "settings",
         "label": "Settings",
         "icon": "settings",
-        "route": "/admin/settings"
+        "route": "/settings"
       }
     ]
   }

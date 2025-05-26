@@ -12,6 +12,9 @@ export class AuthStack extends Stack {
   public readonly userPool: cognito.UserPool;
   public readonly userPoolClient: cognito.UserPoolClient;
   public readonly identityPool: cognito.CfnIdentityPool;
+  public readonly userPoolId: string;
+  public readonly userPoolClientId: string;
+  public readonly identityPoolId: string;
 
   constructor(scope: Construct, id: string, props: AuthStackProps) {
     super(scope, id, props);
@@ -88,5 +91,8 @@ export class AuthStack extends Stack {
     this.userPool = userPool;
     this.userPoolClient = userPoolClient;
     this.identityPool = identityPool;
+    this.userPoolId = userPool.userPoolId;
+    this.userPoolClientId = userPoolClient.userPoolClientId;
+    this.identityPoolId = identityPool.ref;
   }
 }

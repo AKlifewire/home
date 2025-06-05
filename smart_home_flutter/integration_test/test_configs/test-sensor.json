@@ -1,0 +1,74 @@
+{
+  "title": "Test Environmental Sensor",
+  "deviceId": "test-sensor-01",
+  "deviceType": "sensor",
+  "version": "1.0",
+  "generated": "2023-06-15T12:34:56Z",
+  "location": "Test Room",
+  "screens": [
+    {
+      "id": "main",
+      "title": "Main",
+      "widgets": [
+        {
+          "type": "gauge",
+          "id": "temperature",
+          "title": "Temperature",
+          "properties": {
+            "min": 0,
+            "max": 50,
+            "unit": "°C",
+            "statusTopic": "device/test-sensor-01/status"
+          }
+        },
+        {
+          "type": "gauge",
+          "id": "humidity",
+          "title": "Humidity",
+          "properties": {
+            "min": 0,
+            "max": 100,
+            "unit": "%",
+            "statusTopic": "device/test-sensor-01/status"
+          }
+        },
+        {
+          "type": "status",
+          "id": "status",
+          "title": "Device Status",
+          "properties": {
+            "statusTopic": "device/test-sensor-01/status"
+          }
+        }
+      ]
+    },
+    {
+      "id": "charts",
+      "title": "Charts",
+      "widgets": [
+        {
+          "type": "chart",
+          "id": "temperatureHistory",
+          "title": "Temperature History",
+          "properties": {
+            "dataField": "temperature",
+            "period": "day",
+            "chartType": "line",
+            "statusTopic": "device/test-sensor-01/status"
+          }
+        },
+        {
+          "type": "chart",
+          "id": "humidityHistory",
+          "title": "Humidity History",
+          "properties": {
+            "dataField": "humidity",
+            "period": "day",
+            "chartType": "line",
+            "statusTopic": "device/test-sensor-01/status"
+          }
+        }
+      ]
+    }
+  ]
+}

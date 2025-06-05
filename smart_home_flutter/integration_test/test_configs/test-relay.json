@@ -1,0 +1,89 @@
+{
+  "title": "Test Relay Controller",
+  "deviceId": "test-relay-01",
+  "deviceType": "relay",
+  "version": "1.0",
+  "generated": "2023-06-15T12:34:56Z",
+  "location": "Test Room",
+  "screens": [
+    {
+      "id": "main",
+      "title": "Main",
+      "widgets": [
+        {
+          "type": "toggle",
+          "id": "relay1",
+          "title": "Relay 1",
+          "properties": {
+            "topic": "device/test-relay-01/control",
+            "statusTopic": "device/test-relay-01/status",
+            "payload": {
+              "command": "set",
+              "component": "relay1",
+              "value": "${value}"
+            }
+          }
+        },
+        {
+          "type": "toggle",
+          "id": "relay2",
+          "title": "Relay 2",
+          "properties": {
+            "topic": "device/test-relay-01/control",
+            "statusTopic": "device/test-relay-01/status",
+            "payload": {
+              "command": "set",
+              "component": "relay2",
+              "value": "${value}"
+            }
+          }
+        },
+        {
+          "type": "status",
+          "id": "status",
+          "title": "Device Status",
+          "properties": {
+            "statusTopic": "device/test-relay-01/status"
+          }
+        }
+      ]
+    },
+    {
+      "id": "settings",
+      "title": "Settings",
+      "widgets": [
+        {
+          "type": "toggle",
+          "id": "autoOff",
+          "title": "Auto Off",
+          "properties": {
+            "topic": "device/test-relay-01/settings",
+            "statusTopic": "device/test-relay-01/status",
+            "payload": {
+              "command": "setSetting",
+              "setting": "autoOff",
+              "value": "${value}"
+            }
+          }
+        },
+        {
+          "type": "slider",
+          "id": "timeout",
+          "title": "Timeout (minutes)",
+          "properties": {
+            "min": 1,
+            "max": 60,
+            "value": 10,
+            "topic": "device/test-relay-01/settings",
+            "statusTopic": "device/test-relay-01/status",
+            "payload": {
+              "command": "setSetting",
+              "setting": "timeout",
+              "value": "${value}"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "version": "41.0.0",
+  "files": {
+    "8a9b8d4cb4bd59adb75ef8b8517baae3290b30a8c48a4b164fa98d921ae4a403": {
+      "displayName": "dev-AppSyncStack Template",
+      "source": {
+        "path": "dev-AppSyncStack.template.json",
+        "packaging": "file"
+      },
+      "destinations": {
+        "703671935952-us-east-1": {
+          "bucketName": "cdk-hnb659fds-assets-703671935952-us-east-1",
+          "objectKey": "8a9b8d4cb4bd59adb75ef8b8517baae3290b30a8c48a4b164fa98d921ae4a403.json",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::703671935952:role/cdk-hnb659fds-file-publishing-role-703671935952-us-east-1"
+        }
+      }
+    }
+  },
+  "dockerImages": {}
+}

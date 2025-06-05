@@ -1,0 +1,25 @@
+{
+  "deviceId": "test-relay",
+  "deviceType": "relay",
+  "title": "Test Relay",
+  "subtitle": "Living Room",
+  "components": [
+    {
+      "type": "header",
+      "title": "Test Relay",
+      "subtitle": "Living Room"
+    },
+    {
+      "type": "status",
+      "field": "connection",
+      "label": "Status",
+      "topic": "iot/status/test-relay"
+    },
+    {
+      "type": "toggle",
+      "field": "relay1",
+      "label": "Relay 1",
+      "topic": "iot/control/test-relay/relay"
+    }
+  ]
+}

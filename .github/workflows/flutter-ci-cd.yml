@@ -1,0 +1,144 @@
+name: Flutter CI/CD
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'smart_home_flutter/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'smart_home_flutter/**'
+  workflow_dispatch:
+    inputs:
+      deploy:
+        description: 'Deploy to Amplify'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  test:
+    name: Test Flutter App
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./smart_home_flutter
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.10.0'
+          channel: 'stable'
+      
+      - name: Install dependencies
+        run: flutter pub get
+      
+      - name: Analyze code
+        run: flutter analyze
+      
+      - name: Run unit tests
+        run: flutter test
+      
+      - name: Build web
+        run: flutter build web
+      
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: web-build
+          path: smart_home_flutter/build/web
+  
+  integration-test:
+    name: Integration Tests
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: ./smart_home_flutter
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.10.0'
+          channel: 'stable'
+      
+      - name: Install dependencies
+        run: flutter pub get
+      
+      - name: Download frontend config
+        uses: actions/download-artifact@v3
+        with:
+          name: frontend-config-dev
+          path: smart_home_flutter/lib/config/
+      
+      - name: Run integration tests
+        run: flutter test integration_test/run_all_tests.dart
+  
+  deploy-web:
+    name: Deploy to AWS Amplify
+    needs: [test, integration-test]
+    if: github.event_name == 'push' || github.event.inputs.deploy == 'true'
+    runs-on: ubuntu-latest
+    environment: dev
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Download web build
+        uses: actions/download-artifact@v3
+        with:
+          name: web-build
+          path: web-build
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      
+      - name: Deploy to S3
+        run: |
+          aws s3 sync web-build s3://${{ secrets.WEB_BUCKET }} --delete
+      
+      - name: Invalidate CloudFront
+        run: |
+          aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_ID }} --paths "/*"
+  
+  build-android:
+    name: Build Android App
+    needs: [test, integration-test]
+    if: github.event_name == 'push' || github.event.inputs.deploy == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./smart_home_flutter
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.10.0'
+          channel: 'stable'
+      
+      - name: Install dependencies
+        run: flutter pub get
+      
+      - name: Download frontend config
+        uses: actions/download-artifact@v3
+        with:
+          name: frontend-config-dev
+          path: smart_home_flutter/lib/config/
+      
+      - name: Build APK
+        run: flutter build apk --release
+      
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: android-release
+          path: smart_home_flutter/build/app/outputs/flutter-apk/app-release.apk

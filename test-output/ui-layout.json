@@ -1,0 +1,30 @@
+{
+  "title": "Test Relay Device",
+  "deviceId": "test-device-72b54325",
+  "deviceType": "relay",
+  "location": "Test Room",
+  "version": "1.0",
+  "generated": "2025-06-04T23:57:18.960Z",
+  "components": [
+    {
+      "type": "switch",
+      "field": "relay1",
+      "label": "Relay 1",
+      "topic": "devices/test-device-72b54325/components/relay1/set",
+      "statusTopic": "devices/test-device-72b54325/components/relay1/status"
+    },
+    {
+      "type": "switch",
+      "field": "relay2",
+      "label": "Relay 2",
+      "topic": "devices/test-device-72b54325/components/relay2/set",
+      "statusTopic": "devices/test-device-72b54325/components/relay2/status"
+    },
+    {
+      "type": "status",
+      "field": "connection",
+      "label": "Connection Status",
+      "topic": "devices/test-device-72b54325/connection"
+    }
+  ]
+}

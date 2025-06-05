@@ -1,0 +1,461 @@
+{
+ "Resources": {
+  "UiPageBucketACD75CDC": {
+   "Type": "AWS::S3::Bucket",
+   "Properties": {
+    "CorsConfiguration": {
+     "CorsRules": [
+      {
+       "AllowedHeaders": [
+        "*"
+       ],
+       "AllowedMethods": [
+        "GET"
+       ],
+       "AllowedOrigins": [
+        "*"
+       ]
+      }
+     ]
+    },
+    "Tags": [
+     {
+      "Key": "aws-cdk:auto-delete-objects",
+      "Value": "true"
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "dev-StorageStack/UiPageBucket/Resource"
+   }
+  },
+  "UiPageBucketPolicy033FD7F6": {
+   "Type": "AWS::S3::BucketPolicy",
+   "Properties": {
+    "Bucket": {
+     "Ref": "UiPageBucketACD75CDC"
+    },
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "s3:DeleteObject*",
+        "s3:GetBucket*",
+        "s3:List*",
+        "s3:PutBucketPolicy"
+       ],
+       "Effect": "Allow",
+       "Principal": {
+        "AWS": {
+         "Fn::GetAtt": [
+          "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092",
+          "Arn"
+         ]
+        }
+       },
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "UiPageBucketACD75CDC",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "UiPageBucketACD75CDC",
+             "Arn"
+            ]
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-StorageStack/UiPageBucket/Policy/Resource"
+   }
+  },
+  "UiPageBucketAutoDeleteObjectsCustomResource725D5D8B": {
+   "Type": "Custom::S3AutoDeleteObjects",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "CustomS3AutoDeleteObjectsCustomResourceProviderHandler9D90184F",
+      "Arn"
+     ]
+    },
+    "BucketName": {
+     "Ref": "UiPageBucketACD75CDC"
+    }
+   },
+   "DependsOn": [
+    "UiPageBucketPolicy033FD7F6"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "dev-StorageStack/UiPageBucket/AutoDeleteObjectsCustomResource/Default"
+   }
+  },
+  "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Version": "2012-10-17",
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ]
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-StorageStack/Custom::S3AutoDeleteObjectsCustomResourceProvider/Role"
+   }
+  },
+  "CustomS3AutoDeleteObjectsCustomResourceProviderHandler9D90184F": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-703671935952-us-east-1",
+     "S3Key": "faa95a81ae7d7373f3e1f242268f904eb748d8d0fdd306e8a6fe515a1905a7d6.zip"
+    },
+    "Timeout": 900,
+    "MemorySize": 128,
+    "Handler": "index.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Description": {
+     "Fn::Join": [
+      "",
+      [
+       "Lambda function for auto-deleting objects in ",
+       {
+        "Ref": "UiPageBucketACD75CDC"
+       },
+       " S3 bucket."
+      ]
+     ]
+    }
+   },
+   "DependsOn": [
+    "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "dev-StorageStack/Custom::S3AutoDeleteObjectsCustomResourceProvider/Handler",
+    "aws:asset:path": "asset.faa95a81ae7d7373f3e1f242268f904eb748d8d0fdd306e8a6fe515a1905a7d6",
+    "aws:asset:property": "Code"
+   }
+  },
+  "OtaFirmwareBucket8CCE4052": {
+   "Type": "AWS::S3::Bucket",
+   "Properties": {
+    "VersioningConfiguration": {
+     "Status": "Enabled"
+    }
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "dev-StorageStack/OtaFirmwareBucket/Resource"
+   }
+  },
+  "DeviceLogsBucketCE8D3AB0": {
+   "Type": "AWS::S3::Bucket",
+   "Properties": {
+    "LifecycleConfiguration": {
+     "Rules": [
+      {
+       "ExpirationInDays": 90,
+       "Id": "ExpireOldLogs",
+       "Status": "Enabled"
+      }
+     ]
+    }
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "dev-StorageStack/DeviceLogsBucket/Resource"
+   }
+  },
+  "UiBucketNameParam24D238DB": {
+   "Type": "AWS::SSM::Parameter",
+   "Properties": {
+    "Description": "S3 bucket for UI pages",
+    "Name": "/dev/ui/s3BucketName",
+    "Type": "String",
+    "Value": {
+     "Ref": "UiPageBucketACD75CDC"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-StorageStack/UiBucketNameParam/Resource"
+   }
+  },
+  "UiBucketUrlParamF32E7FFC": {
+   "Type": "AWS::SSM::Parameter",
+   "Properties": {
+    "Description": "S3 bucket URL for UI pages",
+    "Name": "/dev/ui/s3BucketUrl",
+    "Type": "String",
+    "Value": {
+     "Fn::Join": [
+      "",
+      [
+       "https://",
+       {
+        "Ref": "UiPageBucketACD75CDC"
+       },
+       ".s3.us-east-1.amazonaws.com"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-StorageStack/UiBucketUrlParam/Resource"
+   }
+  },
+  "OtaBucketNameParamA190033F": {
+   "Type": "AWS::SSM::Parameter",
+   "Properties": {
+    "Description": "S3 bucket for OTA firmware",
+    "Name": "/dev/ota/bucketName",
+    "Type": "String",
+    "Value": {
+     "Ref": "OtaFirmwareBucket8CCE4052"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-StorageStack/OtaBucketNameParam/Resource"
+   }
+  },
+  "OtaBucketUrlParam6A21026A": {
+   "Type": "AWS::SSM::Parameter",
+   "Properties": {
+    "Description": "S3 bucket URL for OTA firmware",
+    "Name": "/dev/ota/bucketUrl",
+    "Type": "String",
+    "Value": {
+     "Fn::Join": [
+      "",
+      [
+       "https://",
+       {
+        "Ref": "OtaFirmwareBucket8CCE4052"
+       },
+       ".s3.us-east-1.amazonaws.com"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-StorageStack/OtaBucketUrlParam/Resource"
+   }
+  },
+  "LogsBucketNameParam7295C8A8": {
+   "Type": "AWS::SSM::Parameter",
+   "Properties": {
+    "Description": "S3 bucket for device logs",
+    "Name": "/dev/logs/bucketName",
+    "Type": "String",
+    "Value": {
+     "Ref": "DeviceLogsBucketCE8D3AB0"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-StorageStack/LogsBucketNameParam/Resource"
+   }
+  },
+  "CDKMetadata": {
+   "Type": "AWS::CDK::Metadata",
+   "Properties": {
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/+VSwW7bMAz9lvJYKF6bbYf51qZFd9iWIC12MYKClphUiSwFIpUgMPzvhe04LXpoL731ROk9Pop81Di7/PUzuzjDPY+02YycLbP6XlBvFO75sebvWX2d9IakqCFSFXboZsFZfYAcDLHEcAAFmCTckCOhabkmLQy5xEQKtql0Vs8JzZXWxAz5Eh2TAh0iQ17UgM6FPZm/JE/BtBDc3T7AQg3ENNqV9Qw5nMMJ/E1oKPZgs2hUDWjMJESeJ0efVFZ1zDl05d+OHknQelCwo8g2eDIfTPxuEWeXpA/aUdt+b4s1x9bIY+mG8qdZ/7xWvCd4mWKhJkvf71L1oW+kqKHsrkc3X9J6vlHMVfspovWrGUasSCgWNWyH8z+s6Pg4d1n/0aUBMcQ62q3Y4I++fhFlZ+TJr6ZRk8QSqjlxSFFT0S6lTRmAN/wshp01FK+RSV0xk9wLrqxftZppkm2SRvlgKFvzt914nF3+yC7O1mztKCYvtqJs3sdnUcfWlOQDAAA="
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-StorageStack/CDKMetadata/Default"
+   }
+  }
+ },
+ "Outputs": {
+  "UiBucketName": {
+   "Description": "S3 bucket for UI pages",
+   "Value": {
+    "Ref": "UiPageBucketACD75CDC"
+   },
+   "Export": {
+    "Name": "UiBucketName-dev"
+   }
+  },
+  "UiBucketUrl": {
+   "Description": "S3 bucket URL for UI pages",
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "https://",
+      {
+       "Ref": "UiPageBucketACD75CDC"
+      },
+      ".s3.us-east-1.amazonaws.com"
+     ]
+    ]
+   },
+   "Export": {
+    "Name": "UiBucketUrl-dev"
+   }
+  },
+  "OtaBucketName": {
+   "Description": "S3 bucket for OTA firmware",
+   "Value": {
+    "Ref": "OtaFirmwareBucket8CCE4052"
+   },
+   "Export": {
+    "Name": "OtaBucketName-dev"
+   }
+  },
+  "OtaBucketUrl": {
+   "Description": "S3 bucket URL for OTA firmware",
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "https://",
+      {
+       "Ref": "OtaFirmwareBucket8CCE4052"
+      },
+      ".s3.us-east-1.amazonaws.com"
+     ]
+    ]
+   },
+   "Export": {
+    "Name": "OtaBucketUrl-dev"
+   }
+  },
+  "LogsBucketName": {
+   "Description": "S3 bucket for device logs",
+   "Value": {
+    "Ref": "DeviceLogsBucketCE8D3AB0"
+   },
+   "Export": {
+    "Name": "LogsBucketName-dev"
+   }
+  },
+  "ExportsOutputRefUiPageBucketACD75CDC1A70A78F": {
+   "Value": {
+    "Ref": "UiPageBucketACD75CDC"
+   },
+   "Export": {
+    "Name": "dev-StorageStack:ExportsOutputRefUiPageBucketACD75CDC1A70A78F"
+   }
+  },
+  "ExportsOutputRefOtaFirmwareBucket8CCE4052C90303CC": {
+   "Value": {
+    "Ref": "OtaFirmwareBucket8CCE4052"
+   },
+   "Export": {
+    "Name": "dev-StorageStack:ExportsOutputRefOtaFirmwareBucket8CCE4052C90303CC"
+   }
+  },
+  "ExportsOutputRefDeviceLogsBucketCE8D3AB0010B4F1E": {
+   "Value": {
+    "Ref": "DeviceLogsBucketCE8D3AB0"
+   },
+   "Export": {
+    "Name": "dev-StorageStack:ExportsOutputRefDeviceLogsBucketCE8D3AB0010B4F1E"
+   }
+  },
+  "ExportsOutputFnGetAttUiPageBucketACD75CDCArnA345B924": {
+   "Value": {
+    "Fn::GetAtt": [
+     "UiPageBucketACD75CDC",
+     "Arn"
+    ]
+   },
+   "Export": {
+    "Name": "dev-StorageStack:ExportsOutputFnGetAttUiPageBucketACD75CDCArnA345B924"
+   }
+  },
+  "ExportsOutputFnGetAttOtaFirmwareBucket8CCE4052Arn99917228": {
+   "Value": {
+    "Fn::GetAtt": [
+     "OtaFirmwareBucket8CCE4052",
+     "Arn"
+    ]
+   },
+   "Export": {
+    "Name": "dev-StorageStack:ExportsOutputFnGetAttOtaFirmwareBucket8CCE4052Arn99917228"
+   }
+  },
+  "ExportsOutputFnGetAttDeviceLogsBucketCE8D3AB0Arn56810752": {
+   "Value": {
+    "Fn::GetAtt": [
+     "DeviceLogsBucketCE8D3AB0",
+     "Arn"
+    ]
+   },
+   "Export": {
+    "Name": "dev-StorageStack:ExportsOutputFnGetAttDeviceLogsBucketCE8D3AB0Arn56810752"
+   }
+  }
+ },
+ "Parameters": {
+  "BootstrapVersion": {
+   "Type": "AWS::SSM::Parameter::Value<String>",
+   "Default": "/cdk-bootstrap/hnb659fds/version",
+   "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+  }
+ },
+ "Rules": {
+  "CheckBootstrapVersion": {
+   "Assertions": [
+    {
+     "Assert": {
+      "Fn::Not": [
+       {
+        "Fn::Contains": [
+         [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+         ],
+         {
+          "Ref": "BootstrapVersion"
+         }
+        ]
+       }
+      ]
+     },
+     "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+    }
+   ]
+  }
+ }
+}

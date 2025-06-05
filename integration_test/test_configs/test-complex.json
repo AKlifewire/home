@@ -1,0 +1,55 @@
+{
+  "deviceId": "test-complex",
+  "deviceType": "complex",
+  "title": "Complex Device",
+  "subtitle": "Garage",
+  "components": [
+    {
+      "type": "header",
+      "title": "Complex Device",
+      "subtitle": "Garage"
+    },
+    {
+      "type": "status",
+      "field": "connection",
+      "label": "Connection Status",
+      "topic": "iot/status/test-complex"
+    },
+    {
+      "type": "gauge",
+      "field": "temperature",
+      "label": "Temperature",
+      "topic": "iot/data/test-complex",
+      "min": -20,
+      "max": 50,
+      "unit": "°C"
+    },
+    {
+      "type": "chart",
+      "field": "pressure",
+      "label": "Pressure History",
+      "topic": "iot/data/test-complex",
+      "unit": "hPa",
+      "timeRange": "24h"
+    },
+    {
+      "type": "toggle",
+      "field": "light",
+      "label": "Garage Light",
+      "topic": "iot/control/test-complex/light"
+    },
+    {
+      "type": "toggle",
+      "field": "door",
+      "label": "Garage Door",
+      "topic": "iot/control/test-complex/door"
+    },
+    {
+      "type": "image",
+      "field": "camera",
+      "label": "Security Camera",
+      "topic": "iot/camera/test-complex",
+      "refreshInterval": 30
+    }
+  ]
+}

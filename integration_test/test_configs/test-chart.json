@@ -1,0 +1,43 @@
+{
+  "deviceId": "test-chart",
+  "deviceType": "chart",
+  "title": "Test Chart Device",
+  "subtitle": "Office",
+  "components": [
+    {
+      "type": "header",
+      "title": "Test Chart Device",
+      "subtitle": "Office"
+    },
+    {
+      "type": "status",
+      "field": "connection",
+      "label": "Status",
+      "topic": "iot/status/test-chart"
+    },
+    {
+      "type": "chart",
+      "field": "power",
+      "label": "Power Usage",
+      "topic": "iot/data/test-chart",
+      "unit": "W",
+      "timeRange": "1h",
+      "color": "#4CAF50"
+    },
+    {
+      "type": "text",
+      "field": "lastReading",
+      "label": "Last Reading",
+      "topic": "iot/data/test-chart"
+    },
+    {
+      "type": "toggle",
+      "field": "recording",
+      "label": "Enable Recording",
+      "topic": "iot/control/test-chart/config",
+      "test": {
+        "skip": true
+      }
+    }
+  ]
+}

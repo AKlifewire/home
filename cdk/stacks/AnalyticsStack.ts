@@ -31,10 +31,11 @@ export class AnalyticsStack extends cdk.Stack {
       databaseName: this.timestreamDatabase.databaseName!,
       tableName: 'DeviceMetrics',
       retentionProperties: {
-        memoryStoreRetentionPeriodInHours: '24',
-        magneticStoreRetentionPeriodInDays: '90',
+        MemoryStoreRetentionPeriodInHours: '24',
+        MagneticStoreRetentionPeriodInDays: '90',
       },
     });
+    this.timestreamTable.addDependency(this.timestreamDatabase);
 
     // Create IAM role for Lambda to access Timestream
     const analyticsLambdaRole = new iam.Role(this, 'AnalyticsLambdaRole', {

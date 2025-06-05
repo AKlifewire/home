@@ -7,6 +7,7 @@ import * as timestream from 'aws-cdk-lib/aws-timestream';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
+import * as cr from 'aws-cdk-lib/custom-resources';
 
 export interface IoTStackProps extends cdk.StackProps {
   envName: string;
@@ -204,8 +205,43 @@ export class IoTStack extends cdk.Stack {
       }
     });
 
-    // Get IoT endpoint
-    this.iotEndpoint = `${this.account}.iot.${this.region}.amazonaws.com`;
+    // === Device Registration IoT Rule ===
+    // Find the device-registration Lambda from LambdaStack (must be passed in props)
+    const deviceRegistrationLambdaArn = cdk.Fn.importValue(`smart-home-${envName}-lambda-device-registration`);
+    
+    const deviceRegistrationRule = new iot.CfnTopicRule(this, 'DeviceRegistrationRule', {
+      ruleName: `DeviceRegistration${envName}`,
+      topicRulePayload: {
+        sql: "SELECT * FROM 'devices/+/describe'",
+        actions: [
+          {
+            lambda: {
+              functionArn: deviceRegistrationLambdaArn
+            }
+          }
+        ],
+        ruleDisabled: false
+      }
+    });
+    // Grant IoT permission to invoke the Lambda
+    new lambda.CfnPermission(this, 'AllowIoTInvokeDeviceRegistration', {
+      action: 'lambda:InvokeFunction',
+      functionName: deviceRegistrationLambdaArn,
+      principal: 'iot.amazonaws.com',
+      sourceArn: deviceRegistrationRule.attrArn
+    });
+
+    // Get IoT endpoint using a custom resource (DescribeEndpoint)
+    const iotEndpointProvider = new cr.AwsCustomResource(this, 'DescribeIoTEndpoint', {
+      onUpdate: {
+        service: 'Iot',
+        action: 'describeEndpoint',
+        parameters: { endpointType: 'iot:Data-ATS' },
+        physicalResourceId: cr.PhysicalResourceId.of('IoTEndpoint'),
+      },
+      policy: cr.AwsCustomResourcePolicy.fromSdkCalls({resources: cr.AwsCustomResourcePolicy.ANY_RESOURCE}),
+    });
+    this.iotEndpoint = iotEndpointProvider.getResponseField('endpointAddress');
     this.provisioningTemplateName = provisioningTemplate.templateName!;
 
     // Store IoT endpoint in SSM

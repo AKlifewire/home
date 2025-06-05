@@ -1,0 +1,107 @@
+{
+  "version": "1.0",
+  "metadata": {
+    "deviceType": "building",
+    "deviceId": "building-001",
+    "lastUpdated": "2025-06-01T12:00:00Z"
+  },
+  "screens": [
+    {
+      "id": "overview",
+      "title": "Building Overview",
+      "widgets": [
+        {
+          "type": "floorplan",
+          "componentId": "floor-1",
+          "properties": {
+            "title": "First Floor",
+            "imageUrl": "https://assets.building/maps/floor1.png",
+            "scale": 1.0,
+            "devices": [
+              {
+                "deviceId": "cam-101",
+                "position": {
+                  "x": 120,
+                  "y": 85
+                },
+                "icon": "camera",
+                "label": "Entry Camera"
+              },
+              {
+                "deviceId": "door-101",
+                "position": {
+                  "x": 150,
+                  "y": 85
+                },
+                "icon": "door",
+                "label": "Main Entry"
+              }
+            ],
+            "zones": [
+              {
+                "name": "Reception",
+                "polygon": [
+                  {"x": 100, "y": 50},
+                  {"x": 200, "y": 50},
+                  {"x": 200, "y": 150},
+                  {"x": 100, "y": 150}
+                ],
+                "color": "rgba(33,150,243,0.2)"
+              },
+              {
+                "name": "Security",
+                "polygon": [
+                  {"x": 220, "y": 50},
+                  {"x": 280, "y": 50},
+                  {"x": 280, "y": 100},
+                  {"x": 220, "y": 100}
+                ],
+                "color": "rgba(255,152,0,0.2)"
+              }
+            ]
+          }
+        },
+        {
+          "type": "admin",
+          "componentId": "building-controls",
+          "properties": {
+            "title": "Building Controls",
+            "role": "admin",
+            "sections": [
+              {
+                "title": "Security",
+                "icon": "security",
+                "controls": [
+                  {
+                    "type": "button",
+                    "label": "Lock Down",
+                    "action": "LOCKDOWN",
+                    "permissions": ["security.lockdown"]
+                  },
+                  {
+                    "type": "toggle",
+                    "label": "Visitor Access",
+                    "action": "TOGGLE_VISITORS",
+                    "permissions": ["access.visitors"]
+                  }
+                ]
+              },
+              {
+                "title": "Environment",
+                "icon": "thermostat",
+                "controls": [
+                  {
+                    "type": "select",
+                    "label": "HVAC Mode",
+                    "action": "SET_HVAC_MODE",
+                    "permissions": ["hvac.control"]
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

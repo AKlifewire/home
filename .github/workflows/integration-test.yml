@@ -1,0 +1,90 @@
+name: Integration Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run daily at midnight UTC
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+jobs:
+  e2e-test:
+    name: End-to-End Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Setup test environment
+        run: node setup-test-env.js
+      
+      - name: Run E2E tests
+        run: npm run test:e2e
+      
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        with:
+          name: e2e-test-results
+          path: test-output/
+  
+  device-simulation:
+    name: Device Simulation Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Setup test environment
+        run: node setup-test-env.js
+      
+      - name: Run device simulation
+        run: npm run test:device-simulation
+      
+      - name: Upload simulation results
+        uses: actions/upload-artifact@v3
+        with:
+          name: device-simulation-results
+          path: test-output/
+  
+  ui-generation-test:
+    name: UI Generation Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run UI generation tests
+        run: npm run test:ui-generation
+      
+      - name: Upload generated UIs
+        uses: actions/upload-artifact@v3
+        with:
+          name: generated-ui-layouts
+          path: test-output/ui-layouts/

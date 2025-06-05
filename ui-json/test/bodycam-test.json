@@ -1,0 +1,84 @@
+{
+  "version": "1.0",
+  "metadata": {
+    "deviceType": "bodycam",
+    "deviceId": "bc-001",
+    "lastUpdated": "2025-06-01T12:00:00Z"
+  },
+  "screens": [
+    {
+      "id": "main",
+      "title": "Officer Body Camera",
+      "widgets": [
+        {
+          "type": "bodycam",
+          "componentId": "bc-001-feed",
+          "properties": {
+            "title": "Live Feed",
+            "streamUrl": "rtsp://bodycam-001/live",
+            "status": {
+              "status": "RECORDING",
+              "color": "#FF0000",
+              "icon": "record_circle"
+            },
+            "battery": {
+              "level": 85,
+              "charging": false
+            },
+            "quickActions": [
+              {
+                "label": "Mark Event",
+                "icon": "flag",
+                "action": "MARK_EVENT",
+                "color": "#FFA500"
+              },
+              {
+                "label": "Emergency",
+                "icon": "warning",
+                "action": "EMERGENCY_ALERT",
+                "color": "#FF0000"
+              }
+            ],
+            "location": {
+              "lat": 37.7749,
+              "lng": -122.4194,
+              "accuracy": 5.2
+            }
+          }
+        },
+        {
+          "type": "floorplan",
+          "componentId": "location-tracker",
+          "properties": {
+            "title": "Officer Location",
+            "imageUrl": "https://assets.police.dept/maps/floor1.png",
+            "scale": 1.0,
+            "devices": [
+              {
+                "deviceId": "bc-001",
+                "position": {
+                  "x": 120,
+                  "y": 85
+                },
+                "icon": "person",
+                "label": "Officer Smith"
+              }
+            ],
+            "zones": [
+              {
+                "name": "Restricted Area",
+                "polygon": [
+                  {"x": 100, "y": 50},
+                  {"x": 150, "y": 50},
+                  {"x": 150, "y": 100},
+                  {"x": 100, "y": 100}
+                ],
+                "color": "rgba(255,0,0,0.2)"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

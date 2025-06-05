@@ -1,0 +1,14 @@
+{
+  "version": "1.0",
+  "title": "Sign Up",
+  "fields": [
+    { "id": "name", "type": "text", "label": "Name", "required": true },
+    { "id": "email", "type": "email", "label": "Email", "required": true },
+    { "id": "password", "type": "password", "label": "Password", "required": true },
+    { "id": "confirmPassword", "type": "password", "label": "Confirm Password", "required": true }
+  ],
+  "actions": [
+    { "id": "signup", "label": "Sign Up", "type": "submit", "action": "signup" },
+    { "id": "login", "label": "Already have an account? Login", "type": "link", "action": "login" }
+  ]
+}

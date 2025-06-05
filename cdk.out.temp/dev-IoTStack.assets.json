@@ -1,0 +1,36 @@
+{
+  "version": "41.0.0",
+  "files": {
+    "9d043014be736e8162bcc7ec5590cc6d2ff24fd0d9c73a5c5d595151c5fdad00": {
+      "displayName": "AWS679f53fac002430cb0da5b7982bd2287/Code",
+      "source": {
+        "path": "asset.9d043014be736e8162bcc7ec5590cc6d2ff24fd0d9c73a5c5d595151c5fdad00",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "703671935952-us-east-1": {
+          "bucketName": "cdk-hnb659fds-assets-703671935952-us-east-1",
+          "objectKey": "9d043014be736e8162bcc7ec5590cc6d2ff24fd0d9c73a5c5d595151c5fdad00.zip",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::703671935952:role/cdk-hnb659fds-file-publishing-role-703671935952-us-east-1"
+        }
+      }
+    },
+    "7742505cde6522b4bdda36bb88295cad7a10a713290f0a628021709761020cfb": {
+      "displayName": "dev-IoTStack Template",
+      "source": {
+        "path": "dev-IoTStack.template.json",
+        "packaging": "file"
+      },
+      "destinations": {
+        "703671935952-us-east-1": {
+          "bucketName": "cdk-hnb659fds-assets-703671935952-us-east-1",
+          "objectKey": "7742505cde6522b4bdda36bb88295cad7a10a713290f0a628021709761020cfb.json",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::703671935952:role/cdk-hnb659fds-file-publishing-role-703671935952-us-east-1"
+        }
+      }
+    }
+  },
+  "dockerImages": {}
+}

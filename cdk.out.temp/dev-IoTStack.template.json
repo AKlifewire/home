@@ -1,0 +1,582 @@
+{
+ "Resources": {
+  "IoTRegistry": {
+   "Type": "AWS::IoT::Thing",
+   "Properties": {
+    "ThingName": "SmartHomeRegistry-dev"
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-IoTStack/IoTRegistry"
+   }
+  },
+  "DevicePolicy": {
+   "Type": "AWS::IoT::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Version": "2012-10-17",
+     "Statement": [
+      {
+       "Effect": "Allow",
+       "Action": [
+        "iot:Connect"
+       ],
+       "Resource": [
+        "arn:aws:iot:${this.region}:${this.account}:client/${iot:Connection.Thing.ThingName}"
+       ]
+      },
+      {
+       "Effect": "Allow",
+       "Action": [
+        "iot:Publish"
+       ],
+       "Resource": [
+        "arn:aws:iot:${this.region}:${this.account}:topic/iot/status/${iot:Connection.Thing.ThingName}/*",
+        "arn:aws:iot:${this.region}:${this.account}:topic/iot/telemetry/${iot:Connection.Thing.ThingName}",
+        "arn:aws:iot:${this.region}:${this.account}:topic/$aws/things/${iot:Connection.Thing.ThingName}/*"
+       ]
+      },
+      {
+       "Effect": "Allow",
+       "Action": [
+        "iot:Subscribe"
+       ],
+       "Resource": [
+        "arn:aws:iot:${this.region}:${this.account}:topicfilter/iot/control/${iot:Connection.Thing.ThingName}/*",
+        "arn:aws:iot:${this.region}:${this.account}:topicfilter/$aws/things/${iot:Connection.Thing.ThingName}/*"
+       ]
+      },
+      {
+       "Effect": "Allow",
+       "Action": [
+        "iot:Receive"
+       ],
+       "Resource": [
+        "arn:aws:iot:${this.region}:${this.account}:topic/iot/control/${iot:Connection.Thing.ThingName}/*",
+        "arn:aws:iot:${this.region}:${this.account}:topic/$aws/things/${iot:Connection.Thing.ThingName}/*"
+       ]
+      }
+     ]
+    },
+    "PolicyName": "SmartHomeIoTPolicy-dev"
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-IoTStack/DevicePolicy"
+   }
+  },
+  "ProvisioningRole2348A7C9": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "iot.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSIoTThingsRegistration"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-IoTStack/ProvisioningRole/Resource"
+   }
+  },
+  "FleetProvisioningTemplate": {
+   "Type": "AWS::IoT::ProvisioningTemplate",
+   "Properties": {
+    "Description": "Template for provisioning new IoT devices",
+    "Enabled": true,
+    "ProvisioningRoleArn": {
+     "Fn::GetAtt": [
+      "ProvisioningRole2348A7C9",
+      "Arn"
+     ]
+    },
+    "TemplateBody": "{\"Parameters\":{\"ThingName\":{\"Type\":\"String\"},\"DeviceLocation\":{\"Type\":\"String\",\"Default\":\"unknown\"},\"DeviceType\":{\"Type\":\"String\",\"Default\":\"esp32\"},\"UserId\":{\"Type\":\"String\",\"Default\":\"\"}},\"Resources\":{\"thing\":{\"Type\":\"AWS::IoT::Thing\",\"Properties\":{\"ThingName\":{\"Ref\":\"ThingName\"},\"AttributePayload\":{\"location\":{\"Ref\":\"DeviceLocation\"},\"deviceType\":{\"Ref\":\"DeviceType\"},\"userId\":{\"Ref\":\"UserId\"}}}},\"certificate\":{\"Type\":\"AWS::IoT::Certificate\",\"Properties\":{\"CertificateId\":{\"Ref\":\"AWS::IoT::Certificate::Id\"},\"Status\":\"ACTIVE\"}},\"policy\":{\"Type\":\"AWS::IoT::Policy\",\"Properties\":{\"PolicyName\":\"SmartHomeIoTPolicy-dev\"}}}}",
+    "TemplateName": "SmartHomeProvisioningTemplate-dev"
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-IoTStack/FleetProvisioningTemplate"
+   }
+  },
+  "CreateCertificateRoleF3B76817": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     },
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/AWSIoTFullAccess"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-IoTStack/CreateCertificateRole/Resource"
+   }
+  },
+  "CreateCertificateFunction68CBC59B": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "ZipFile": "\n        const AWS = require('aws-sdk');\n        exports.handler = async () => {\n          const iot = new AWS.Iot();\n          const certData = await iot.createKeysAndCertificate({ setAsActive: true }).promise();\n          await iot.attachPolicy({\n            policyName: process.env.POLICY_NAME,\n            target: certData.certificateArn\n          }).promise();\n          return {\n            certificateId: certData.certificateId,\n            certificateArn: certData.certificateArn,\n            certificatePem: certData.certificatePem,\n            privateKey: certData.keyPair.PrivateKey\n          };\n        };\n      "
+    },
+    "Environment": {
+     "Variables": {
+      "POLICY_NAME": "SmartHomeIoTPolicy-dev"
+     }
+    },
+    "Handler": "index.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "CreateCertificateRoleF3B76817",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs18.x",
+    "Timeout": 30
+   },
+   "DependsOn": [
+    "CreateCertificateRoleF3B76817"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "dev-IoTStack/CreateCertificateFunction/Resource"
+   }
+  },
+  "DeviceLogsBucketCE8D3AB0": {
+   "Type": "AWS::S3::Bucket",
+   "Properties": {
+    "BucketName": "smart-home-device-logs-dev-703671935952-deviotstack"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "dev-IoTStack/DeviceLogsBucket/Resource"
+   }
+  },
+  "TelemetryDatabase": {
+   "Type": "AWS::Timestream::Database",
+   "Properties": {
+    "DatabaseName": "SmartHomeTelemetrydev"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "dev-IoTStack/TelemetryDatabase"
+   }
+  },
+  "TelemetryTable": {
+   "Type": "AWS::Timestream::Table",
+   "Properties": {
+    "DatabaseName": {
+     "Ref": "TelemetryDatabase"
+    },
+    "RetentionProperties": {
+     "MemoryStoreRetentionPeriodInHours": 24,
+     "MagneticStoreRetentionPeriodInDays": 30
+    },
+    "TableName": "DeviceTelemetry"
+   },
+   "DependsOn": [
+    "TelemetryDatabase"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "dev-IoTStack/TelemetryTable"
+   }
+  },
+  "DeviceStatusTable6D00E57F": {
+   "Type": "AWS::DynamoDB::Table",
+   "Properties": {
+    "AttributeDefinitions": [
+     {
+      "AttributeName": "deviceId",
+      "AttributeType": "S"
+     },
+     {
+      "AttributeName": "statusType",
+      "AttributeType": "S"
+     }
+    ],
+    "KeySchema": [
+     {
+      "AttributeName": "deviceId",
+      "KeyType": "HASH"
+     },
+     {
+      "AttributeName": "statusType",
+      "KeyType": "RANGE"
+     }
+    ],
+    "ProvisionedThroughput": {
+     "ReadCapacityUnits": 5,
+     "WriteCapacityUnits": 5
+    },
+    "TableName": "DeviceStatus"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "dev-IoTStack/DeviceStatusTable/Resource"
+   }
+  },
+  "TimestreamRole66265F7C": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "iot.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/AmazonTimestreamFullAccess"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-IoTStack/TimestreamRole/Resource"
+   }
+  },
+  "TelemetryRule": {
+   "Type": "AWS::IoT::TopicRule",
+   "Properties": {
+    "RuleName": "SmartHomeTelemetrydev",
+    "TopicRulePayload": {
+     "Actions": [
+      {
+       "Timestream": {
+        "DatabaseName": "SmartHomeTelemetrydev",
+        "Dimensions": [
+         {
+          "Name": "deviceId",
+          "Value": "${topic(3)}"
+         },
+         {
+          "Name": "deviceType",
+          "Value": "${deviceType}"
+         }
+        ],
+        "RoleArn": {
+         "Fn::GetAtt": [
+          "TimestreamRole66265F7C",
+          "Arn"
+         ]
+        },
+        "TableName": "DeviceTelemetry"
+       }
+      }
+     ],
+     "RuleDisabled": false,
+     "Sql": "SELECT * FROM 'iot/telemetry/+'"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-IoTStack/TelemetryRule"
+   }
+  },
+  "DeviceRegistrationRule": {
+   "Type": "AWS::IoT::TopicRule",
+   "Properties": {
+    "RuleName": "DeviceRegistrationdev",
+    "TopicRulePayload": {
+     "Actions": [
+      {
+       "Lambda": {
+        "FunctionArn": {
+         "Fn::ImportValue": "smart-home-dev-lambda-device-registration"
+        }
+       }
+      }
+     ],
+     "RuleDisabled": false,
+     "Sql": "SELECT * FROM 'devices/+/describe'"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-IoTStack/DeviceRegistrationRule"
+   }
+  },
+  "AllowIoTInvokeDeviceRegistration": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::ImportValue": "smart-home-dev-lambda-device-registration"
+    },
+    "Principal": "iot.amazonaws.com",
+    "SourceArn": {
+     "Fn::GetAtt": [
+      "DeviceRegistrationRule",
+      "Arn"
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-IoTStack/AllowIoTInvokeDeviceRegistration"
+   }
+  },
+  "DescribeIoTEndpointB53F1A7D": {
+   "Type": "Custom::AWS",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "AWS679f53fac002430cb0da5b7982bd22872D164C4C",
+      "Arn"
+     ]
+    },
+    "Create": "{\"service\":\"Iot\",\"action\":\"describeEndpoint\",\"parameters\":{\"endpointType\":\"iot:Data-ATS\"},\"physicalResourceId\":{\"id\":\"IoTEndpoint\"}}",
+    "Update": "{\"service\":\"Iot\",\"action\":\"describeEndpoint\",\"parameters\":{\"endpointType\":\"iot:Data-ATS\"},\"physicalResourceId\":{\"id\":\"IoTEndpoint\"}}",
+    "InstallLatestAwsSdk": false
+   },
+   "DependsOn": [
+    "DescribeIoTEndpointCustomResourcePolicyBC22FC2C"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "dev-IoTStack/DescribeIoTEndpoint/Resource/Default"
+   }
+  },
+  "DescribeIoTEndpointCustomResourcePolicyBC22FC2C": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "iot:DescribeEndpoint",
+       "Effect": "Allow",
+       "Resource": "*"
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "DescribeIoTEndpointCustomResourcePolicyBC22FC2C",
+    "Roles": [
+     {
+      "Ref": "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-IoTStack/DescribeIoTEndpoint/CustomResourcePolicy/Resource"
+   }
+  },
+  "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-IoTStack/AWS679f53fac002430cb0da5b7982bd2287/ServiceRole/Resource"
+   }
+  },
+  "AWS679f53fac002430cb0da5b7982bd22872D164C4C": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-703671935952-us-east-1",
+     "S3Key": "9d043014be736e8162bcc7ec5590cc6d2ff24fd0d9c73a5c5d595151c5fdad00.zip"
+    },
+    "Handler": "index.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 120
+   },
+   "DependsOn": [
+    "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "dev-IoTStack/AWS679f53fac002430cb0da5b7982bd2287/Resource",
+    "aws:asset:path": "asset.9d043014be736e8162bcc7ec5590cc6d2ff24fd0d9c73a5c5d595151c5fdad00",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "IoTEndpointParam491A88A2": {
+   "Type": "AWS::SSM::Parameter",
+   "Properties": {
+    "Description": "IoT endpoint for device connection",
+    "Name": "/iot/dev/endpoint",
+    "Type": "String",
+    "Value": {
+     "Fn::GetAtt": [
+      "DescribeIoTEndpointB53F1A7D",
+      "endpointAddress"
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-IoTStack/IoTEndpointParam/Resource"
+   }
+  },
+  "CDKMetadata": {
+   "Type": "AWS::CDK::Metadata",
+   "Properties": {
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/81VS2/cIBD+LeEYETeP9tC9bbYPVVXbaHeVi2VFszDrkBiwGNhoi/zfK2yc9UppjlEOFvAxj28+YHxZXHz+VJyfwBOdCfl41qhNEVcexCOHJ7qLyvoiLrZmfa9MzRdbc2MbJfb9zNmdImWNMvUadduAx4SvbavEMjTYcQW6iEvbYBkZEAWN8nrPZpG1ThmhWmjmQthgPJuxU8azTXKYC6+s6eGOMw0GapR9boXEZmU8wvZzl22rjr9VKv4OOLx5Ku9B3P8wjTI47LNZyU5Z1VXp6FN8PuBlZOTBo0bj6VkwkHI1Qcs4Dbu2yX8M+B+4OlzCjjegNxKK+C2YvqoyMheMVxpz2fdgZIMur4SV40aysWFUB81OOWsSq4y4PuWB9depRdmbZJIatXX7lfr7cujnQJw1tv7ubGjzcptJ/4ZnurtWHGarsDGYtTviflzUtOBBnVGNXil0WlF6pXylTN2gt2aiVghKjux6LW+Cay2Nmd5VbcNB/EIPEjzkU/AuYPXy1nBdOk5XRbwO4hF9Gdmmn0xoOdR2B814mZlE8s7us5SDHx+GayAsq44nSuQdpua22Jov4GEDNPQ+2KS+J/cGtJWbIvZAGZlP4yRtC86rpNBP7J+tOWz5fZumq/Q8yTr/usXr/DMfuroDIvRUzNPAiXTq8k6Z+gYcaPToyphIDfMJUeqtbqEJIyKRhFPtoYsMT3L07Tq+RLLBCRyPYfpVXATyVt+5bETF/IkWPTb68eNleeSe2sxo11ez8lDnn9Of4NvgO26sxOKBPuwuL4uLj8X5yQMpdZZvU7Ecxn+9TH/g+wYAAA=="
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-IoTStack/CDKMetadata/Default"
+   }
+  }
+ },
+ "Outputs": {
+  "IoTEndpoint": {
+   "Description": "IoT endpoint for device connection",
+   "Value": {
+    "Fn::GetAtt": [
+     "DescribeIoTEndpointB53F1A7D",
+     "endpointAddress"
+    ]
+   },
+   "Export": {
+    "Name": "IoTEndpoint-dev"
+   }
+  },
+  "ProvisioningTemplateName": {
+   "Description": "Fleet provisioning template name",
+   "Value": "SmartHomeProvisioningTemplate-dev",
+   "Export": {
+    "Name": "ProvisioningTemplateName-dev"
+   }
+  },
+  "ExportsOutputFnGetAttDescribeIoTEndpointB53F1A7DendpointAddressAF0B54D1": {
+   "Value": {
+    "Fn::GetAtt": [
+     "DescribeIoTEndpointB53F1A7D",
+     "endpointAddress"
+    ]
+   },
+   "Export": {
+    "Name": "dev-IoTStack:ExportsOutputFnGetAttDescribeIoTEndpointB53F1A7DendpointAddressAF0B54D1"
+   }
+  }
+ },
+ "Parameters": {
+  "BootstrapVersion": {
+   "Type": "AWS::SSM::Parameter::Value<String>",
+   "Default": "/cdk-bootstrap/hnb659fds/version",
+   "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+  }
+ },
+ "Rules": {
+  "CheckBootstrapVersion": {
+   "Assertions": [
+    {
+     "Assert": {
+      "Fn::Not": [
+       {
+        "Fn::Contains": [
+         [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+         ],
+         {
+          "Ref": "BootstrapVersion"
+         }
+        ]
+       }
+      ]
+     },
+     "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+    }
+   ]
+  }
+ }
+}

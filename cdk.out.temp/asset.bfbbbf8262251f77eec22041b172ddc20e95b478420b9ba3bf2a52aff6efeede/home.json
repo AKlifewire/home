@@ -1,0 +1,159 @@
+{
+  "version": "1.0",
+  "title": "Smart Home Dashboard",
+  "description": "Main dashboard for smart home devices",
+  "layout": {
+    "type": "responsive",
+    "columns": 12,
+    "padding": 16
+  },
+  "sections": [
+    {
+      "id": "header",
+      "type": "header",
+      "title": "Smart Home Dashboard",
+      "subtitle": "Monitor and control your devices",
+      "actions": [
+        {
+          "id": "refresh",
+          "label": "Refresh",
+          "icon": "refresh",
+          "action": "refreshDevices"
+        },
+        {
+          "id": "settings",
+          "label": "Settings",
+          "icon": "settings",
+          "action": "openSettings"
+        }
+      ]
+    },
+    {
+      "id": "deviceSummary",
+      "type": "summary",
+      "title": "Device Overview",
+      "items": [
+        {
+          "id": "totalDevices",
+          "label": "Total Devices",
+          "value": "${totalDevices}",
+          "icon": "devices"
+        },
+        {
+          "id": "activeDevices",
+          "label": "Active Devices",
+          "value": "${activeDevices}",
+          "icon": "check_circle"
+        },
+        {
+          "id": "offlineDevices",
+          "label": "Offline Devices",
+          "value": "${offlineDevices}",
+          "icon": "error"
+        }
+      ]
+    },
+    {
+      "id": "deviceList",
+      "type": "deviceGrid",
+      "title": "Your Devices",
+      "filter": true,
+      "search": true,
+      "deviceTypes": [
+        {
+          "type": "esp32",
+          "icon": "memory",
+          "color": "#4285F4",
+          "actions": ["control", "view", "delete"]
+        },
+        {
+          "type": "sensor",
+          "icon": "sensors",
+          "color": "#0F9D58",
+          "actions": ["view", "delete"]
+        },
+        {
+          "type": "switch",
+          "icon": "toggle_on",
+          "color": "#F4B400",
+          "actions": ["control", "view", "delete"]
+        }
+      ],
+      "emptyState": {
+        "message": "No devices found",
+        "action": {
+          "label": "Add Device",
+          "icon": "add",
+          "action": "addDevice"
+        }
+      }
+    },
+    {
+      "id": "quickActions",
+      "type": "actionPanel",
+      "title": "Quick Actions",
+      "actions": [
+        {
+          "id": "allOn",
+          "label": "All Lights On",
+          "icon": "lightbulb",
+          "action": "controlGroup",
+          "params": {
+            "deviceType": "light",
+            "state": "on"
+          }
+        },
+        {
+          "id": "allOff",
+          "label": "All Lights Off",
+          "icon": "lightbulb_outline",
+          "action": "controlGroup",
+          "params": {
+            "deviceType": "light",
+            "state": "off"
+          }
+        },
+        {
+          "id": "addDevice",
+          "label": "Add Device",
+          "icon": "add_circle",
+          "action": "addDevice"
+        }
+      ]
+    }
+  ],
+  "navigation": {
+    "items": [
+      {
+        "id": "home",
+        "label": "Home",
+        "icon": "home",
+        "route": "/"
+      },
+      {
+        "id": "devices",
+        "label": "Devices",
+        "icon": "devices",
+        "route": "/devices"
+      },
+      {
+        "id": "automation",
+        "label": "Automation",
+        "icon": "auto_fix_high",
+        "route": "/automation"
+      },
+      {
+        "id": "analytics",
+        "label": "Analytics",
+        "icon": "insights",
+        "route": "/analytics"
+      },
+      {
+        "id": "settings",
+        "label": "Settings",
+        "icon": "settings",
+        "route": "/settings"
+      }
+    ]
+  }
+}

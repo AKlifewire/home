@@ -1,0 +1,13 @@
+{
+  "version": "1.0",
+  "title": "Login",
+  "fields": [
+    { "id": "email", "type": "email", "label": "Email", "required": true },
+    { "id": "password", "type": "password", "label": "Password", "required": true }
+  ],
+  "actions": [
+    { "id": "login", "label": "Login", "type": "submit", "action": "login" },
+    { "id": "forgot", "label": "Forgot Password?", "type": "link", "action": "forgotPassword" },
+    { "id": "signup", "label": "Sign Up", "type": "link", "action": "signup" }
+  ]
+}

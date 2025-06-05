@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Device Configuration Schema",
+  "description": "Schema for device configuration JSON that defines UI capabilities",
+  "type": "object",
+  "required": ["deviceId", "type", "features"],
+  "properties": {
+    "deviceId": {
+      "type": "string",
+      "description": "Unique identifier for the device"
+    },
+    "type": {
+      "type": "string",
+      "description": "Type of device (relay, sensor, energyMeter, etc.)"
+    },
+    "location": {
+      "type": "string",
+      "description": "Physical location of the device"
+    },
+    "features": {
+      "type": "array",
+      "description": "List of features/capabilities the device supports",
+      "items": {
+        "type": "string"
+      }
+    },
+    "labels": {
+      "type": "object",
+      "description": "Human-readable labels for features",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "uiVersion": {
+      "type": "string",
+      "description": "Version of the UI schema"
+    }
+  }
+}

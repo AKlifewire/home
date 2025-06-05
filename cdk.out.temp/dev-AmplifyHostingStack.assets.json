@@ -1,0 +1,21 @@
+{
+  "version": "41.0.0",
+  "files": {
+    "7bb2053c06edd583eff1378b9fd7f1e2f3e2d6d37ed9ec555b183ea02334912d": {
+      "displayName": "dev-AmplifyHostingStack Template",
+      "source": {
+        "path": "dev-AmplifyHostingStack.template.json",
+        "packaging": "file"
+      },
+      "destinations": {
+        "703671935952-us-east-1": {
+          "bucketName": "cdk-hnb659fds-assets-703671935952-us-east-1",
+          "objectKey": "7bb2053c06edd583eff1378b9fd7f1e2f3e2d6d37ed9ec555b183ea02334912d.json",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::703671935952:role/cdk-hnb659fds-file-publishing-role-703671935952-us-east-1"
+        }
+      }
+    }
+  },
+  "dockerImages": {}
+}

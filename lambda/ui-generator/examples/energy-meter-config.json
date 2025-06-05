@@ -1,0 +1,13 @@
+{
+  "deviceId": "esp32-energy-001",
+  "type": "energyMeter",
+  "location": "Main Distribution Panel",
+  "features": ["voltage", "current", "power", "energy"],
+  "labels": {
+    "voltage": "Line Voltage",
+    "current": "Current Draw",
+    "power": "Active Power",
+    "energy": "Energy Consumption"
+  },
+  "uiVersion": "v1"
+}

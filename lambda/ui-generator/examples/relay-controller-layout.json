@@ -1,0 +1,42 @@
+{
+  "title": "Floor 1 - Generator Room",
+  "deviceId": "esp32-relay-001",
+  "deviceType": "relay",
+  "version": "v1",
+  "generated": "2023-06-15T10:30:45.123Z",
+  "components": [
+    {
+      "type": "switch",
+      "field": "relay1",
+      "label": "AC Main 1",
+      "topic": "device/esp32-relay-001/control",
+      "payload": {
+        "command": "set",
+        "feature": "relay1",
+        "value": "${value}"
+      }
+    },
+    {
+      "type": "switch",
+      "field": "relay2",
+      "label": "AC Main 2",
+      "topic": "device/esp32-relay-001/control",
+      "payload": {
+        "command": "set",
+        "feature": "relay2",
+        "value": "${value}"
+      }
+    },
+    {
+      "type": "chart",
+      "field": "powerMeter",
+      "label": "Power Consumption",
+      "period": "hour"
+    },
+    {
+      "type": "status",
+      "field": "status",
+      "label": "Device Status"
+    }
+  ]
+}

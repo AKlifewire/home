@@ -1,0 +1,825 @@
+{
+ "Resources": {
+  "GraphqlApi": {
+   "Type": "AWS::AppSync::GraphQLApi",
+   "Properties": {
+    "AdditionalAuthenticationProviders": [
+     {
+      "AuthenticationType": "API_KEY"
+     }
+    ],
+    "AuthenticationType": "AMAZON_COGNITO_USER_POOLS",
+    "Name": "SmartHomeAPI",
+    "UserPoolConfig": {
+     "AwsRegion": "us-east-1",
+     "DefaultAction": "ALLOW",
+     "UserPoolId": {
+      "Fn::ImportValue": "dev-AuthStack:ExportsOutputRefUserPool6BA7E5F296FD7236"
+     }
+    },
+    "XrayEnabled": true
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-AppSyncStack/GraphqlApi"
+   }
+  },
+  "ApiKey": {
+   "Type": "AWS::AppSync::ApiKey",
+   "Properties": {
+    "ApiId": {
+     "Fn::GetAtt": [
+      "GraphqlApi",
+      "ApiId"
+     ]
+    },
+    "Description": "API Key for testing",
+    "Expires": 1779914291
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-AppSyncStack/ApiKey"
+   }
+  },
+  "GraphQLSchema": {
+   "Type": "AWS::AppSync::GraphQLSchema",
+   "Properties": {
+    "ApiId": {
+     "Fn::GetAtt": [
+      "GraphqlApi",
+      "ApiId"
+     ]
+    },
+    "Definition": "type Query {\n  getUiPage(userId: ID!, deviceType: String): UIPageResult\n  getMyDevices(userId: ID!): DeviceListResult\n  getDeviceState(deviceId: ID!): DeviceStateResult\n  getAnalytics(deviceId: ID!, timeRange: String): AnalyticsResult\n  getUiJson(uiType: String!): UiJsonResult @aws_api_key @aws_cognito_user_pools\n}\n\ntype Mutation {\n  controlRelay(deviceId: ID!, relayId: String!, state: Boolean!): DeviceCommandResult\n  registerDevice(userId: ID!, deviceCode: String!): DeviceRegistrationResult\n  removeDevice(userId: ID!, deviceId: ID!): DeviceRegistrationResult\n}\n\ntype Subscription {\n  onDeviceUpdate(deviceId: ID!): DeviceState\n  onDeviceAdded(userId: ID!): Device\n}\n\ntype UIPageResult {\n  success: Boolean!\n  data: UIPage\n}\n\ntype UIPage {\n  title: String\n  layout: AWSJSON\n  components: [UIComponent]\n}\n\ntype UIComponent {\n  id: ID!\n  type: String!\n  properties: AWSJSON\n}\n\ntype DeviceListResult {\n  success: Boolean!\n  devices: [Device]\n}\n\ntype Device {\n  id: ID!\n  name: String\n  type: String!\n  location: String\n  capabilities: [String]\n  relays: [Relay]\n  sensors: [Sensor]\n  firmware: String\n  lastConnected: AWSDateTime\n  userId: ID!\n}\n\ntype Relay {\n  id: ID!\n  name: String\n  state: Boolean\n  deviceId: ID!\n}\n\ntype Sensor {\n  id: ID!\n  name: String\n  type: String!\n  value: Float\n  unit: String\n  deviceId: ID!\n}\n\ntype DeviceCommandResult {\n  success: Boolean!\n  message: String\n  deviceId: ID\n  relayId: String\n  newState: Boolean\n}\n\ntype DeviceRegistrationResult {\n  success: Boolean!\n  message: String\n  device: Device\n}\n\ntype DeviceStateResult {\n  success: Boolean!\n  state: DeviceState\n}\n\ntype DeviceState {\n  deviceId: ID!\n  online: Boolean!\n  relayStates: [RelayState]\n  sensorReadings: [SensorReading]\n  lastUpdated: AWSDateTime\n}\n\ntype RelayState {\n  relayId: String!\n  state: Boolean!\n}\n\ntype SensorReading {\n  sensorId: String!\n  value: Float!\n  timestamp: AWSDateTime\n}\n\ntype AnalyticsResult {\n  success: Boolean!\n  data: AnalyticsData\n}\n\ntype AnalyticsData {\n  deviceId: ID\n  metrics: [MetricPoint]\n  insights: [String]\n}\n\ntype UiJsonResult @aws_api_key @aws_cognito_user_pools {\n  success: Boolean! @aws_api_key @aws_cognito_user_pools\n  data: String @aws_api_key @aws_cognito_user_pools\n  message: String @aws_api_key @aws_cognito_user_pools\n}\n\ntype MetricPoint {\n  timestamp: AWSDateTime\n  value: Float\n  type: String\n}"
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-AppSyncStack/GraphQLSchema"
+   }
+  },
+  "AppSyncLambdaRole441197CA": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "appsync.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-AppSyncStack/AppSyncLambdaRole/Resource"
+   }
+  },
+  "AppSyncLambdaRoleDefaultPolicy9FE2EA05": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "lambda:InvokeFunction",
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::ImportValue": "dev-LambdaStack:ExportsOutputFnGetAttcontrolrelayFunction4F3EACDBArn2D5AB674"
+        },
+        {
+         "Fn::ImportValue": "dev-LambdaStack:ExportsOutputFnGetAttgetanalyticsFunction6023DC98Arn9D1AEEE7"
+        },
+        {
+         "Fn::ImportValue": "dev-LambdaStack:ExportsOutputFnGetAttgetdevicestateFunction3A1B79F6ArnE20F81C7"
+        },
+        {
+         "Fn::ImportValue": "dev-LambdaStack:ExportsOutputFnGetAttgetmydevicesFunction117EAF4AArn94499BB5"
+        },
+        {
+         "Fn::ImportValue": "dev-LambdaStack:ExportsOutputFnGetAttgetuijsonFunction64B3AB76Arn447AFAB6"
+        },
+        {
+         "Fn::ImportValue": "dev-LambdaStack:ExportsOutputFnGetAttgetuipageFunctionFA3AEF0DArn291C4A66"
+        },
+        {
+         "Fn::ImportValue": "dev-LambdaStack:ExportsOutputFnGetAttregisterdeviceFunction9219CBCBArn6C61C5AD"
+        },
+        {
+         "Fn::ImportValue": "dev-LambdaStack:ExportsOutputFnGetAttremovedeviceFunction84CF65FFArn5D928992"
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::ImportValue": "dev-LambdaStack:ExportsOutputFnGetAttcontrolrelayFunction4F3EACDBArn2D5AB674"
+           },
+           ":*"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::ImportValue": "dev-LambdaStack:ExportsOutputFnGetAttgetanalyticsFunction6023DC98Arn9D1AEEE7"
+           },
+           ":*"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::ImportValue": "dev-LambdaStack:ExportsOutputFnGetAttgetdevicestateFunction3A1B79F6ArnE20F81C7"
+           },
+           ":*"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::ImportValue": "dev-LambdaStack:ExportsOutputFnGetAttgetmydevicesFunction117EAF4AArn94499BB5"
+           },
+           ":*"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::ImportValue": "dev-LambdaStack:ExportsOutputFnGetAttgetuijsonFunction64B3AB76Arn447AFAB6"
+           },
+           ":*"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::ImportValue": "dev-LambdaStack:ExportsOutputFnGetAttgetuipageFunctionFA3AEF0DArn291C4A66"
+           },
+           ":*"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::ImportValue": "dev-LambdaStack:ExportsOutputFnGetAttregisterdeviceFunction9219CBCBArn6C61C5AD"
+           },
+           ":*"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::ImportValue": "dev-LambdaStack:ExportsOutputFnGetAttremovedeviceFunction84CF65FFArn5D928992"
+           },
+           ":*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "AppSyncLambdaRoleDefaultPolicy9FE2EA05",
+    "Roles": [
+     {
+      "Ref": "AppSyncLambdaRole441197CA"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-AppSyncStack/AppSyncLambdaRole/DefaultPolicy/Resource"
+   }
+  },
+  "getuipageDataSource": {
+   "Type": "AWS::AppSync::DataSource",
+   "Properties": {
+    "ApiId": {
+     "Fn::GetAtt": [
+      "GraphqlApi",
+      "ApiId"
+     ]
+    },
+    "LambdaConfig": {
+     "LambdaFunctionArn": {
+      "Fn::ImportValue": "dev-LambdaStack:ExportsOutputFnGetAttgetuipageFunctionFA3AEF0DArn291C4A66"
+     }
+    },
+    "Name": "get_ui_pageDataSource",
+    "ServiceRoleArn": {
+     "Fn::GetAtt": [
+      "AppSyncLambdaRole441197CA",
+      "Arn"
+     ]
+    },
+    "Type": "AWS_LAMBDA"
+   },
+   "DependsOn": [
+    "GraphQLSchema"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "dev-AppSyncStack/get-ui-pageDataSource"
+   }
+  },
+  "getuipageResolver": {
+   "Type": "AWS::AppSync::Resolver",
+   "Properties": {
+    "ApiId": {
+     "Fn::GetAtt": [
+      "GraphqlApi",
+      "ApiId"
+     ]
+    },
+    "DataSourceName": "get_ui_pageDataSource",
+    "FieldName": "getUiPage",
+    "TypeName": "Query"
+   },
+   "DependsOn": [
+    "getuipageDataSource"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "dev-AppSyncStack/get-ui-pageResolver"
+   }
+  },
+  "getmydevicesDataSource": {
+   "Type": "AWS::AppSync::DataSource",
+   "Properties": {
+    "ApiId": {
+     "Fn::GetAtt": [
+      "GraphqlApi",
+      "ApiId"
+     ]
+    },
+    "LambdaConfig": {
+     "LambdaFunctionArn": {
+      "Fn::ImportValue": "dev-LambdaStack:ExportsOutputFnGetAttgetmydevicesFunction117EAF4AArn94499BB5"
+     }
+    },
+    "Name": "get_my_devicesDataSource",
+    "ServiceRoleArn": {
+     "Fn::GetAtt": [
+      "AppSyncLambdaRole441197CA",
+      "Arn"
+     ]
+    },
+    "Type": "AWS_LAMBDA"
+   },
+   "DependsOn": [
+    "GraphQLSchema"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "dev-AppSyncStack/get-my-devicesDataSource"
+   }
+  },
+  "getmydevicesResolver": {
+   "Type": "AWS::AppSync::Resolver",
+   "Properties": {
+    "ApiId": {
+     "Fn::GetAtt": [
+      "GraphqlApi",
+      "ApiId"
+     ]
+    },
+    "DataSourceName": "get_my_devicesDataSource",
+    "FieldName": "getMyDevices",
+    "TypeName": "Query"
+   },
+   "DependsOn": [
+    "getmydevicesDataSource"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "dev-AppSyncStack/get-my-devicesResolver"
+   }
+  },
+  "getdevicestateDataSource": {
+   "Type": "AWS::AppSync::DataSource",
+   "Properties": {
+    "ApiId": {
+     "Fn::GetAtt": [
+      "GraphqlApi",
+      "ApiId"
+     ]
+    },
+    "LambdaConfig": {
+     "LambdaFunctionArn": {
+      "Fn::ImportValue": "dev-LambdaStack:ExportsOutputFnGetAttgetdevicestateFunction3A1B79F6ArnE20F81C7"
+     }
+    },
+    "Name": "get_device_stateDataSource",
+    "ServiceRoleArn": {
+     "Fn::GetAtt": [
+      "AppSyncLambdaRole441197CA",
+      "Arn"
+     ]
+    },
+    "Type": "AWS_LAMBDA"
+   },
+   "DependsOn": [
+    "GraphQLSchema"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "dev-AppSyncStack/get-device-stateDataSource"
+   }
+  },
+  "getdevicestateResolver": {
+   "Type": "AWS::AppSync::Resolver",
+   "Properties": {
+    "ApiId": {
+     "Fn::GetAtt": [
+      "GraphqlApi",
+      "ApiId"
+     ]
+    },
+    "DataSourceName": "get_device_stateDataSource",
+    "FieldName": "getDeviceState",
+    "TypeName": "Query"
+   },
+   "DependsOn": [
+    "getdevicestateDataSource"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "dev-AppSyncStack/get-device-stateResolver"
+   }
+  },
+  "getanalyticsDataSource": {
+   "Type": "AWS::AppSync::DataSource",
+   "Properties": {
+    "ApiId": {
+     "Fn::GetAtt": [
+      "GraphqlApi",
+      "ApiId"
+     ]
+    },
+    "LambdaConfig": {
+     "LambdaFunctionArn": {
+      "Fn::ImportValue": "dev-LambdaStack:ExportsOutputFnGetAttgetanalyticsFunction6023DC98Arn9D1AEEE7"
+     }
+    },
+    "Name": "get_analyticsDataSource",
+    "ServiceRoleArn": {
+     "Fn::GetAtt": [
+      "AppSyncLambdaRole441197CA",
+      "Arn"
+     ]
+    },
+    "Type": "AWS_LAMBDA"
+   },
+   "DependsOn": [
+    "GraphQLSchema"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "dev-AppSyncStack/get-analyticsDataSource"
+   }
+  },
+  "getanalyticsResolver": {
+   "Type": "AWS::AppSync::Resolver",
+   "Properties": {
+    "ApiId": {
+     "Fn::GetAtt": [
+      "GraphqlApi",
+      "ApiId"
+     ]
+    },
+    "DataSourceName": "get_analyticsDataSource",
+    "FieldName": "getAnalytics",
+    "TypeName": "Query"
+   },
+   "DependsOn": [
+    "getanalyticsDataSource"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "dev-AppSyncStack/get-analyticsResolver"
+   }
+  },
+  "getuijsonDataSource": {
+   "Type": "AWS::AppSync::DataSource",
+   "Properties": {
+    "ApiId": {
+     "Fn::GetAtt": [
+      "GraphqlApi",
+      "ApiId"
+     ]
+    },
+    "LambdaConfig": {
+     "LambdaFunctionArn": {
+      "Fn::ImportValue": "dev-LambdaStack:ExportsOutputFnGetAttgetuijsonFunction64B3AB76Arn447AFAB6"
+     }
+    },
+    "Name": "get_ui_jsonDataSource",
+    "ServiceRoleArn": {
+     "Fn::GetAtt": [
+      "AppSyncLambdaRole441197CA",
+      "Arn"
+     ]
+    },
+    "Type": "AWS_LAMBDA"
+   },
+   "DependsOn": [
+    "GraphQLSchema"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "dev-AppSyncStack/get-ui-jsonDataSource"
+   }
+  },
+  "getuijsonResolver": {
+   "Type": "AWS::AppSync::Resolver",
+   "Properties": {
+    "ApiId": {
+     "Fn::GetAtt": [
+      "GraphqlApi",
+      "ApiId"
+     ]
+    },
+    "DataSourceName": "get_ui_jsonDataSource",
+    "FieldName": "getUiJson",
+    "TypeName": "Query"
+   },
+   "DependsOn": [
+    "getuijsonDataSource"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "dev-AppSyncStack/get-ui-jsonResolver"
+   }
+  },
+  "controlrelayDataSource": {
+   "Type": "AWS::AppSync::DataSource",
+   "Properties": {
+    "ApiId": {
+     "Fn::GetAtt": [
+      "GraphqlApi",
+      "ApiId"
+     ]
+    },
+    "LambdaConfig": {
+     "LambdaFunctionArn": {
+      "Fn::ImportValue": "dev-LambdaStack:ExportsOutputFnGetAttcontrolrelayFunction4F3EACDBArn2D5AB674"
+     }
+    },
+    "Name": "control_relayDataSource",
+    "ServiceRoleArn": {
+     "Fn::GetAtt": [
+      "AppSyncLambdaRole441197CA",
+      "Arn"
+     ]
+    },
+    "Type": "AWS_LAMBDA"
+   },
+   "DependsOn": [
+    "GraphQLSchema"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "dev-AppSyncStack/control-relayDataSource"
+   }
+  },
+  "controlrelayResolver": {
+   "Type": "AWS::AppSync::Resolver",
+   "Properties": {
+    "ApiId": {
+     "Fn::GetAtt": [
+      "GraphqlApi",
+      "ApiId"
+     ]
+    },
+    "DataSourceName": "control_relayDataSource",
+    "FieldName": "controlRelay",
+    "TypeName": "Mutation"
+   },
+   "DependsOn": [
+    "controlrelayDataSource"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "dev-AppSyncStack/control-relayResolver"
+   }
+  },
+  "registerdeviceDataSource": {
+   "Type": "AWS::AppSync::DataSource",
+   "Properties": {
+    "ApiId": {
+     "Fn::GetAtt": [
+      "GraphqlApi",
+      "ApiId"
+     ]
+    },
+    "LambdaConfig": {
+     "LambdaFunctionArn": {
+      "Fn::ImportValue": "dev-LambdaStack:ExportsOutputFnGetAttregisterdeviceFunction9219CBCBArn6C61C5AD"
+     }
+    },
+    "Name": "register_deviceDataSource",
+    "ServiceRoleArn": {
+     "Fn::GetAtt": [
+      "AppSyncLambdaRole441197CA",
+      "Arn"
+     ]
+    },
+    "Type": "AWS_LAMBDA"
+   },
+   "DependsOn": [
+    "GraphQLSchema"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "dev-AppSyncStack/register-deviceDataSource"
+   }
+  },
+  "registerdeviceResolver": {
+   "Type": "AWS::AppSync::Resolver",
+   "Properties": {
+    "ApiId": {
+     "Fn::GetAtt": [
+      "GraphqlApi",
+      "ApiId"
+     ]
+    },
+    "DataSourceName": "register_deviceDataSource",
+    "FieldName": "registerDevice",
+    "TypeName": "Mutation"
+   },
+   "DependsOn": [
+    "registerdeviceDataSource"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "dev-AppSyncStack/register-deviceResolver"
+   }
+  },
+  "removedeviceDataSource": {
+   "Type": "AWS::AppSync::DataSource",
+   "Properties": {
+    "ApiId": {
+     "Fn::GetAtt": [
+      "GraphqlApi",
+      "ApiId"
+     ]
+    },
+    "LambdaConfig": {
+     "LambdaFunctionArn": {
+      "Fn::ImportValue": "dev-LambdaStack:ExportsOutputFnGetAttremovedeviceFunction84CF65FFArn5D928992"
+     }
+    },
+    "Name": "remove_deviceDataSource",
+    "ServiceRoleArn": {
+     "Fn::GetAtt": [
+      "AppSyncLambdaRole441197CA",
+      "Arn"
+     ]
+    },
+    "Type": "AWS_LAMBDA"
+   },
+   "DependsOn": [
+    "GraphQLSchema"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "dev-AppSyncStack/remove-deviceDataSource"
+   }
+  },
+  "removedeviceResolver": {
+   "Type": "AWS::AppSync::Resolver",
+   "Properties": {
+    "ApiId": {
+     "Fn::GetAtt": [
+      "GraphqlApi",
+      "ApiId"
+     ]
+    },
+    "DataSourceName": "remove_deviceDataSource",
+    "FieldName": "removeDevice",
+    "TypeName": "Mutation"
+   },
+   "DependsOn": [
+    "removedeviceDataSource"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "dev-AppSyncStack/remove-deviceResolver"
+   }
+  },
+  "NoneDataSource": {
+   "Type": "AWS::AppSync::DataSource",
+   "Properties": {
+    "ApiId": {
+     "Fn::GetAtt": [
+      "GraphqlApi",
+      "ApiId"
+     ]
+    },
+    "Name": "NoneDataSource",
+    "Type": "NONE"
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-AppSyncStack/NoneDataSource"
+   }
+  },
+  "onDeviceUpdateResolver": {
+   "Type": "AWS::AppSync::Resolver",
+   "Properties": {
+    "ApiId": {
+     "Fn::GetAtt": [
+      "GraphqlApi",
+      "ApiId"
+     ]
+    },
+    "DataSourceName": "NoneDataSource",
+    "FieldName": "onDeviceUpdate",
+    "RequestMappingTemplate": "{\n          \"version\": \"2018-05-29\",\n          \"payload\": {}\n        }",
+    "ResponseMappingTemplate": "$util.toJson($context.result)",
+    "TypeName": "Subscription"
+   },
+   "DependsOn": [
+    "NoneDataSource"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "dev-AppSyncStack/onDeviceUpdateResolver"
+   }
+  },
+  "onDeviceAddedResolver": {
+   "Type": "AWS::AppSync::Resolver",
+   "Properties": {
+    "ApiId": {
+     "Fn::GetAtt": [
+      "GraphqlApi",
+      "ApiId"
+     ]
+    },
+    "DataSourceName": "NoneDataSource",
+    "FieldName": "onDeviceAdded",
+    "RequestMappingTemplate": "{\n          \"version\": \"2018-05-29\",\n          \"payload\": {}\n        }",
+    "ResponseMappingTemplate": "$util.toJson($context.result)",
+    "TypeName": "Subscription"
+   },
+   "DependsOn": [
+    "NoneDataSource"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "dev-AppSyncStack/onDeviceAddedResolver"
+   }
+  },
+  "GraphQLApiUrlParam101F681C": {
+   "Type": "AWS::SSM::Parameter",
+   "Properties": {
+    "Description": "URL for the AppSync GraphQL API",
+    "Name": "/appsync/dev-AppSyncStack/api-url",
+    "Type": "String",
+    "Value": {
+     "Fn::Join": [
+      "",
+      [
+       "https://",
+       {
+        "Fn::GetAtt": [
+         "GraphqlApi",
+         "GraphQLUrl"
+        ]
+       }
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-AppSyncStack/GraphQLApiUrlParam/Resource"
+   }
+  },
+  "CDKMetadata": {
+   "Type": "AWS::CDK::Metadata",
+   "Properties": {
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/9WTTU8CMRCGfws9mlKB6EFuKybGaBRZ4oUQM7YDFLYfabsQ0ux/N91dIITEeNRT2+edj8x0ZsD6d7es14Gd73Kx6Rbyi8U8AN9Q2PnPCNb6veYsjhb60YFdvb9kVtLRQmdWPuOennjOV6gggQcIkJvScUyvCXpTbNFVVIJicWIKnEUC3pcKxf2eDCOxTmouLRQZ56bUgQzJFaGtTXLIeJBG17iiRIGGJYqxKSSX6MlwFs/YPnOt7byikYAQUzM+pGgskk+rhgB89aQLqfGokSvyC/HnuP9NndefZQqkDU51HlswNUm56MwlFiIPEFChDv4s7R/GdeVN0RX1XqUNcFIvx+BAYUA3i8Qe7q+gsJ1PX1t9QFEeiEDPnbSnYW1CH3yriqZtSJtRdyyJb2WwZaioNgLZ2l9vBwPWv2G9ztpL2XWlDlIhmzTnN9gvsoWvAwAA"
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-AppSyncStack/CDKMetadata/Default"
+   }
+  }
+ },
+ "Outputs": {
+  "GraphQLApiUrl": {
+   "Description": "URL for the AppSync GraphQL API",
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "https://",
+      {
+       "Fn::GetAtt": [
+        "GraphqlApi",
+        "GraphQLUrl"
+       ]
+      }
+     ]
+    ]
+   },
+   "Export": {
+    "Name": "dev-AppSyncStack-GraphQLApiUrl"
+   }
+  },
+  "GraphQLApiId": {
+   "Description": "ID of the AppSync GraphQL API",
+   "Value": {
+    "Fn::GetAtt": [
+     "GraphqlApi",
+     "ApiId"
+    ]
+   },
+   "Export": {
+    "Name": "dev-AppSyncStack-GraphQLApiId"
+   }
+  },
+  "ApiKeyOutput": {
+   "Description": "API Key for the AppSync GraphQL API",
+   "Value": {
+    "Fn::GetAtt": [
+     "ApiKey",
+     "ApiKey"
+    ]
+   },
+   "Export": {
+    "Name": "dev-AppSyncStack-GraphQLApiKey"
+   }
+  },
+  "ExportsOutputFnGetAttGraphqlApiGraphQLUrlB313F3C4": {
+   "Value": {
+    "Fn::GetAtt": [
+     "GraphqlApi",
+     "GraphQLUrl"
+    ]
+   },
+   "Export": {
+    "Name": "dev-AppSyncStack:ExportsOutputFnGetAttGraphqlApiGraphQLUrlB313F3C4"
+   }
+  },
+  "ExportsOutputFnGetAttGraphqlApiApiId87400CC9": {
+   "Value": {
+    "Fn::GetAtt": [
+     "GraphqlApi",
+     "ApiId"
+    ]
+   },
+   "Export": {
+    "Name": "dev-AppSyncStack:ExportsOutputFnGetAttGraphqlApiApiId87400CC9"
+   }
+  }
+ },
+ "Parameters": {
+  "BootstrapVersion": {
+   "Type": "AWS::SSM::Parameter::Value<String>",
+   "Default": "/cdk-bootstrap/hnb659fds/version",
+   "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+  }
+ },
+ "Rules": {
+  "CheckBootstrapVersion": {
+   "Assertions": [
+    {
+     "Assert": {
+      "Fn::Not": [
+       {
+        "Fn::Contains": [
+         [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+         ],
+         {
+          "Ref": "BootstrapVersion"
+         }
+        ]
+       }
+      ]
+     },
+     "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+    }
+   ]
+  }
+ }
+}

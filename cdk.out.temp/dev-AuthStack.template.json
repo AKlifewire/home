@@ -1,0 +1,240 @@
+{
+ "Resources": {
+  "UserPool6BA7E5F2": {
+   "Type": "AWS::Cognito::UserPool",
+   "Properties": {
+    "AccountRecoverySetting": {
+     "RecoveryMechanisms": [
+      {
+       "Name": "verified_email",
+       "Priority": 1
+      }
+     ]
+    },
+    "AdminCreateUserConfig": {
+     "AllowAdminCreateUserOnly": false
+    },
+    "AutoVerifiedAttributes": [
+     "email"
+    ],
+    "EmailVerificationMessage": "The verification code to your new account is {####}",
+    "EmailVerificationSubject": "Verify your new account",
+    "Policies": {
+     "PasswordPolicy": {
+      "MinimumLength": 8,
+      "RequireLowercase": true,
+      "RequireNumbers": true,
+      "RequireSymbols": false,
+      "RequireUppercase": false
+     }
+    },
+    "SmsVerificationMessage": "The verification code to your new account is {####}",
+    "UserPoolName": "smart-home-dev-userpool",
+    "UsernameAttributes": [
+     "email"
+    ],
+    "VerificationMessageTemplate": {
+     "DefaultEmailOption": "CONFIRM_WITH_CODE",
+     "EmailMessage": "The verification code to your new account is {####}",
+     "EmailSubject": "Verify your new account",
+     "SmsMessage": "The verification code to your new account is {####}"
+    }
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "dev-AuthStack/UserPool/Resource"
+   }
+  },
+  "UserPoolClient2F5918F7": {
+   "Type": "AWS::Cognito::UserPoolClient",
+   "Properties": {
+    "AllowedOAuthFlows": [
+     "implicit",
+     "code"
+    ],
+    "AllowedOAuthFlowsUserPoolClient": true,
+    "AllowedOAuthScopes": [
+     "profile",
+     "phone",
+     "email",
+     "openid",
+     "aws.cognito.signin.user.admin"
+    ],
+    "CallbackURLs": [
+     "https://example.com"
+    ],
+    "GenerateSecret": false,
+    "SupportedIdentityProviders": [
+     "COGNITO"
+    ],
+    "UserPoolId": {
+     "Ref": "UserPool6BA7E5F2"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-AuthStack/UserPoolClient/Resource"
+   }
+  },
+  "IdentityPool": {
+   "Type": "AWS::Cognito::IdentityPool",
+   "Properties": {
+    "AllowUnauthenticatedIdentities": false,
+    "CognitoIdentityProviders": [
+     {
+      "ClientId": {
+       "Ref": "UserPoolClient2F5918F7"
+      },
+      "ProviderName": {
+       "Fn::GetAtt": [
+        "UserPool6BA7E5F2",
+        "ProviderName"
+       ]
+      }
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-AuthStack/IdentityPool"
+   }
+  },
+  "UserPoolIdParam81D6760E": {
+   "Type": "AWS::SSM::Parameter",
+   "Properties": {
+    "Description": "User Pool ID for Smart Home App",
+    "Name": "/auth/dev-AuthStack/userPoolId",
+    "Type": "String",
+    "Value": {
+     "Ref": "UserPool6BA7E5F2"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-AuthStack/UserPoolIdParam/Resource"
+   }
+  },
+  "UserPoolClientIdParam5DF0EADC": {
+   "Type": "AWS::SSM::Parameter",
+   "Properties": {
+    "Description": "User Pool Client ID for Smart Home App",
+    "Name": "/auth/dev-AuthStack/userPoolClientId",
+    "Type": "String",
+    "Value": {
+     "Ref": "UserPoolClient2F5918F7"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-AuthStack/UserPoolClientIdParam/Resource"
+   }
+  },
+  "IdentityPoolIdParamB5A143D4": {
+   "Type": "AWS::SSM::Parameter",
+   "Properties": {
+    "Description": "Identity Pool ID for Smart Home App",
+    "Name": "/auth/dev-AuthStack/identityPoolId",
+    "Type": "String",
+    "Value": {
+     "Ref": "IdentityPool"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-AuthStack/IdentityPoolIdParam/Resource"
+   }
+  },
+  "CDKMetadata": {
+   "Type": "AWS::CDK::Metadata",
+   "Properties": {
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/8WRwU7DMAyGn4UcURa2CQ7shgaHSRNMq7bLhFCWusVbmpTYWTVVfXfUrYUBD8ApzvfH9m9nrEb3d2p4pSsamHQ/sLhVdcLa7KWu6K02PnfIXtUrgrDw3m5qEbvwWRcgJuJaSEFgswRztyqfnN5aSMWEQwQpCHM3cw8WNQGJSS2g0GjPaiOFjuzXEDA7/tVKTVT5kC68RXPSC3RzcDm/d10DfEQM8Ig5MvUdOzj3FQSjCX7xVVn2PNOWvoXkWGy9pQ633ozx0fESjD9AOIrJuHmV08z1m5B9MLUIji8W09nLwUHQDAmYANwX/lHjnNqSWQqOkY8tbSRR0X5DQJcvdNAFMIRNLco+vlz96dVa29iTFMgELBm9O5FG/kPmacwv703TXl8il5Eb6XwKakc3h/FYjW7V8GpHiIMQHWMBank+PwEBK/0rmgIAAA=="
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-AuthStack/CDKMetadata/Default"
+   }
+  }
+ },
+ "Outputs": {
+  "UserPoolId": {
+   "Description": "The ID of the Cognito User Pool",
+   "Value": {
+    "Ref": "UserPool6BA7E5F2"
+   },
+   "Export": {
+    "Name": "dev-AuthStack-UserPoolId"
+   }
+  },
+  "UserPoolClientId": {
+   "Description": "The ID of the Cognito User Pool Client",
+   "Value": {
+    "Ref": "UserPoolClient2F5918F7"
+   },
+   "Export": {
+    "Name": "dev-AuthStack-UserPoolClientId"
+   }
+  },
+  "IdentityPoolId": {
+   "Description": "The ID of the Cognito Identity Pool",
+   "Value": {
+    "Ref": "IdentityPool"
+   },
+   "Export": {
+    "Name": "dev-AuthStack-IdentityPoolId"
+   }
+  },
+  "ExportsOutputRefUserPool6BA7E5F296FD7236": {
+   "Value": {
+    "Ref": "UserPool6BA7E5F2"
+   },
+   "Export": {
+    "Name": "dev-AuthStack:ExportsOutputRefUserPool6BA7E5F296FD7236"
+   }
+  },
+  "ExportsOutputRefUserPoolClient2F5918F753847A55": {
+   "Value": {
+    "Ref": "UserPoolClient2F5918F7"
+   },
+   "Export": {
+    "Name": "dev-AuthStack:ExportsOutputRefUserPoolClient2F5918F753847A55"
+   }
+  },
+  "ExportsOutputRefIdentityPoolF5C140BA": {
+   "Value": {
+    "Ref": "IdentityPool"
+   },
+   "Export": {
+    "Name": "dev-AuthStack:ExportsOutputRefIdentityPoolF5C140BA"
+   }
+  }
+ },
+ "Parameters": {
+  "BootstrapVersion": {
+   "Type": "AWS::SSM::Parameter::Value<String>",
+   "Default": "/cdk-bootstrap/hnb659fds/version",
+   "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+  }
+ },
+ "Rules": {
+  "CheckBootstrapVersion": {
+   "Assertions": [
+    {
+     "Assert": {
+      "Fn::Not": [
+       {
+        "Fn::Contains": [
+         [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+         ],
+         {
+          "Ref": "BootstrapVersion"
+         }
+        ]
+       }
+      ]
+     },
+     "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+    }
+   ]
+  }
+ }
+}

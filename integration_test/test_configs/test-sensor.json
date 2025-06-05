@@ -1,0 +1,37 @@
+{
+  "deviceId": "test-sensor",
+  "deviceType": "sensor",
+  "title": "Test Sensor",
+  "subtitle": "Kitchen",
+  "components": [
+    {
+      "type": "header",
+      "title": "Test Sensor",
+      "subtitle": "Kitchen"
+    },
+    {
+      "type": "status",
+      "field": "connection",
+      "label": "Status",
+      "topic": "iot/status/test-sensor"
+    },
+    {
+      "type": "gauge",
+      "field": "temperature",
+      "label": "Temperature",
+      "topic": "iot/data/test-sensor",
+      "min": 0,
+      "max": 100,
+      "unit": "°C"
+    },
+    {
+      "type": "gauge",
+      "field": "humidity",
+      "label": "Humidity",
+      "topic": "iot/data/test-sensor",
+      "min": 0,
+      "max": 100,
+      "unit": "%"
+    }
+  ]
+}

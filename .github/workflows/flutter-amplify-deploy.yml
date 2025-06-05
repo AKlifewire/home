@@ -1,0 +1,110 @@
+name: Flutter Web Build and Deploy to Amplify
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'smart_home_flutter/**'
+  workflow_dispatch:
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  FLUTTER_VERSION: '3.16.0'
+  AMPLIFY_APP_ID: ${{ secrets.AMPLIFY_APP_ID }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+
+      - name: Get Flutter dependencies
+        run: |
+          cd smart_home_flutter
+          flutter pub get
+
+      - name: Run Flutter tests
+        run: |
+          cd smart_home_flutter
+          flutter test
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+
+      - name: Get Flutter dependencies
+        run: |
+          cd smart_home_flutter
+          flutter pub get
+
+      - name: Update Amplify configuration
+        run: |
+          cd smart_home_flutter
+          cp lib/config/amplifyconfiguration.dart.template lib/config/amplifyconfiguration.dart
+          # Replace placeholder values with environment-specific values
+          sed -i 's/REGION_PLACEHOLDER/${{ secrets.AWS_REGION }}/g' lib/config/amplifyconfiguration.dart
+          sed -i 's/USER_POOL_ID_PLACEHOLDER/${{ secrets.USER_POOL_ID }}/g' lib/config/amplifyconfiguration.dart
+          sed -i 's/CLIENT_ID_PLACEHOLDER/${{ secrets.USER_POOL_CLIENT_ID }}/g' lib/config/amplifyconfiguration.dart
+          sed -i 's/IDENTITY_POOL_ID_PLACEHOLDER/${{ secrets.IDENTITY_POOL_ID }}/g' lib/config/amplifyconfiguration.dart
+          sed -i 's/API_ENDPOINT_PLACEHOLDER/${{ secrets.API_ENDPOINT }}/g' lib/config/amplifyconfiguration.dart
+
+      - name: Build Flutter web
+        run: |
+          cd smart_home_flutter
+          flutter build web --release --dart-define=ENV_NAME=prod
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: flutter-web-build
+          path: smart_home_flutter/build/web
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: flutter-web-build
+          path: ./build
+
+      - name: Create deployment ZIP
+        run: |
+          cd build
+          zip -r ../deploy.zip .
+
+      - name: Deploy to Amplify Hosting
+        run: |
+          aws amplify start-deployment \
+            --app-id ${{ env.AMPLIFY_APP_ID }} \
+            --branch-name main \
+            --source-url fileb://deploy.zip
+
+      - name: Verify deployment
+        run: |
+          echo "Deployment started. Check status at https://console.aws.amazon.com/amplify/home?region=${{ env.AWS_REGION }}#/${{ env.AMPLIFY_APP_ID }}"

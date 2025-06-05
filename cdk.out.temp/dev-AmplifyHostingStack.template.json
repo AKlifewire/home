@@ -1,0 +1,201 @@
+{
+ "Resources": {
+  "SmartHomeFrontendAppdevRoleB1C1F227": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "amplify.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-AmplifyHostingStack/SmartHomeFrontendApp-dev/Role/Resource"
+   }
+  },
+  "SmartHomeFrontendAppdevE65F9B00": {
+   "Type": "AWS::Amplify::App",
+   "Properties": {
+    "BasicAuthConfig": {
+     "EnableBasicAuth": false
+    },
+    "BuildSpec": "version: \"1.0\"\nfrontend:\n  phases:\n    preBuild:\n      commands:\n        - cd flutter_app\n        - flutter pub get\n        - flutter clean\n    build:\n      commands:\n        - flutter build web --release\n  artifacts:\n    baseDirectory: flutter_app/build/web\n    files:\n      - \"**/*\"\n  cache:\n    paths:\n      - flutter_app/.dart_tool/**/*\n      - flutter_app/.pub-cache/**/*\n",
+    "EnvironmentVariables": [
+     {
+      "Name": "NODE_ENV",
+      "Value": "production"
+     },
+     {
+      "Name": "ENV_NAME",
+      "Value": "dev"
+     }
+    ],
+    "IAMServiceRole": {
+     "Fn::GetAtt": [
+      "AmplifyServiceRole1EB3E935",
+      "Arn"
+     ]
+    },
+    "Name": "SmartHomeFrontendApp-dev",
+    "Platform": "WEB"
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-AmplifyHostingStack/SmartHomeFrontendApp-dev/Resource"
+   }
+  },
+  "SmartHomeFrontendAppdevmain77B0AF94": {
+   "Type": "AWS::Amplify::Branch",
+   "Properties": {
+    "AppId": {
+     "Fn::GetAtt": [
+      "SmartHomeFrontendAppdevE65F9B00",
+      "AppId"
+     ]
+    },
+    "BranchName": "main",
+    "EnableAutoBuild": true,
+    "EnablePullRequestPreview": true,
+    "EnvironmentVariables": [
+     {
+      "Name": "ENV_NAME",
+      "Value": "dev"
+     }
+    ],
+    "Stage": "PRODUCTION"
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-AmplifyHostingStack/SmartHomeFrontendApp-dev/main/Resource"
+   }
+  },
+  "AmplifyServiceRole1EB3E935": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "amplify.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/AdministratorAccess-Amplify"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-AmplifyHostingStack/AmplifyServiceRole/Resource"
+   }
+  },
+  "CDKMetadata": {
+   "Type": "AWS::CDK::Metadata",
+   "Properties": {
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/6WQwWrDMBBEv8U6BllxTHuoT3XyAS3u0ZiyleVkE1kSltRghP69yBGUnntadmbeLGzNDi/PLFQF3G3Jx1sp8YuFDwf8RuFuPwPCzEKnpegDAWv9LMbjSppAzIKKowHZcq69cqQhO0JzJgEtd6jVJsdI/0NTMoOCsxjftUSOwpKmD3+0tV1ydogDPU0qVUQKs5E4rSycJtUak4zjAopfYqSdsNovXPTb4R3ZsDfvjHeRViVIcwFWFa/5Mfs0c182Q2vML/0oTvsQI1V6FOxq9991zQ5PrCquFrFcvHI4C9Y95g9aPONxfQEAAA=="
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-AmplifyHostingStack/CDKMetadata/Default"
+   }
+  }
+ },
+ "Outputs": {
+  "AmplifyAppIddev": {
+   "Description": "Amplify App ID for frontend (dev)",
+   "Value": {
+    "Fn::GetAtt": [
+     "SmartHomeFrontendAppdevE65F9B00",
+     "AppId"
+    ]
+   },
+   "Export": {
+    "Name": "AmplifyAppId-dev"
+   }
+  },
+  "AmplifyDefaultDomaindev": {
+   "Description": "Default Amplify Domain (dev)",
+   "Value": {
+    "Fn::GetAtt": [
+     "SmartHomeFrontendAppdevE65F9B00",
+     "DefaultDomain"
+    ]
+   },
+   "Export": {
+    "Name": "AmplifyDefaultDomain-dev"
+   }
+  },
+  "AmplifyConsoleUrldev": {
+   "Description": "URL to the Amplify Console (dev)",
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "https://console.aws.amazon.com/amplify/home?region=us-east-1#/",
+      {
+       "Fn::GetAtt": [
+        "SmartHomeFrontendAppdevE65F9B00",
+        "AppId"
+       ]
+      }
+     ]
+    ]
+   },
+   "Export": {
+    "Name": "AmplifyConsoleUrl-dev"
+   }
+  }
+ },
+ "Parameters": {
+  "BootstrapVersion": {
+   "Type": "AWS::SSM::Parameter::Value<String>",
+   "Default": "/cdk-bootstrap/hnb659fds/version",
+   "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+  }
+ },
+ "Rules": {
+  "CheckBootstrapVersion": {
+   "Assertions": [
+    {
+     "Assert": {
+      "Fn::Not": [
+       {
+        "Fn::Contains": [
+         [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+         ],
+         {
+          "Ref": "BootstrapVersion"
+         }
+        ]
+       }
+      ]
+     },
+     "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+    }
+   ]
+  }
+ }
+}

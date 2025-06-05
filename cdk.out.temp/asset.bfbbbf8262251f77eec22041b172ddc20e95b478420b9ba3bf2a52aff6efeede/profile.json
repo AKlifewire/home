@@ -1,0 +1,12 @@
+{
+  "version": "1.0",
+  "title": "Profile",
+  "fields": [
+    { "id": "name", "type": "text", "label": "Name", "readonly": true },
+    { "id": "email", "type": "email", "label": "Email", "readonly": true },
+    { "id": "changePassword", "type": "button", "label": "Change Password", "action": "changePassword" }
+  ],
+  "actions": [
+    { "id": "logout", "label": "Logout", "type": "button", "action": "logout" }
+  ]
+}

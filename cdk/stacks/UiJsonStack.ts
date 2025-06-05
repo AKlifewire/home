@@ -7,6 +7,7 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as appsync from 'aws-cdk-lib/aws-appsync';
+import * as cr from 'aws-cdk-lib/custom-resources';
 import * as path from 'path';
 
 interface UiJsonStackProps extends cdk.StackProps {
@@ -99,10 +100,44 @@ export class UiJsonStack extends cdk.Stack {
       props.devicesTable.grantReadData(generateUiJsonLambda);
     }
 
-    // Deploy UI JSON files to S3
-    new s3deploy.BucketDeployment(this, 'DeployUiJson', {
+    // Create staging bucket for JSON files
+    const stagingBucket = new s3.Bucket(this, 'UiJsonStagingBucket', {
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
+      versioned: false,
+    });
+
+    // Deploy UI JSON files to staging bucket
+    const deployment = new s3deploy.BucketDeployment(this, 'DeployUiJson', {
       sources: [s3deploy.Source.asset(path.join(__dirname, '../../ui-json'))],
-      destinationBucket: this.uiJsonBucket,
+      destinationBucket: stagingBucket,
+    });
+    
+    // Create Lambda function to organize UI JSON files
+    const organizeUiJsonLambda = new lambda.Function(this, 'OrganizeUiJson', {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../lambda')),
+      handler: 'organize-ui-json.handler',
+      timeout: cdk.Duration.seconds(60),
+      environment: {
+        SOURCE_BUCKET: stagingBucket.bucketName,
+        UI_BUCKET: this.uiJsonBucket.bucketName,
+      },
+    });
+
+    // Grant permissions
+    stagingBucket.grantRead(organizeUiJsonLambda);
+    this.uiJsonBucket.grantReadWrite(organizeUiJsonLambda);
+
+    // Create custom resource to run the organizer after deployment
+    const organizerCustomResource = new cdk.CustomResource(this, 'UiJsonOrganizer', {
+      serviceToken: new cr.Provider(this, 'UiJsonOrganizerProvider', {
+        onEventHandler: organizeUiJsonLambda,
+      }).serviceToken,
+      properties: {
+        // Change this to force redeployment
+        timestamp: Date.now(),
+      },
     });
 
     // Add AppSync resolvers if API is provided

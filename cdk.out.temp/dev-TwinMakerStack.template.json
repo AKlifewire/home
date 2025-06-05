@@ -1,0 +1,480 @@
+{
+ "Resources": {
+  "TwinMakerAssetBucket85AC8A5F": {
+   "Type": "AWS::S3::Bucket",
+   "Properties": {
+    "BucketName": "smart-home-twinmaker-assets-dev-703671935952",
+    "VersioningConfiguration": {
+     "Status": "Enabled"
+    }
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "dev-TwinMakerStack/TwinMakerAssetBucket/Resource"
+   }
+  },
+  "TwinMakerRoleFCD1C2A9": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "iottwinmaker.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/AmazonS3ReadOnlyAccess"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-TwinMakerStack/TwinMakerRole/Resource"
+   }
+  },
+  "TwinMakerRoleDefaultPolicyB1AC952D": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "s3:GetObject",
+        "s3:ListBucket",
+        "s3:PutObject"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "TwinMakerAssetBucket85AC8A5F",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "TwinMakerAssetBucket85AC8A5F",
+             "Arn"
+            ]
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "TwinMakerRoleDefaultPolicyB1AC952D",
+    "Roles": [
+     {
+      "Ref": "TwinMakerRoleFCD1C2A9"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-TwinMakerStack/TwinMakerRole/DefaultPolicy/Resource"
+   }
+  },
+  "MatterBridgeFunctionServiceRoleEAEB43DB": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-TwinMakerStack/MatterBridgeFunction/ServiceRole/Resource"
+   }
+  },
+  "MatterBridgeFunction4B989D70": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-703671935952-us-east-1",
+     "S3Key": "e1bc105be636f99d58d1b06958fab4a6f5c00b48b5a51c3a620ac7449ccc1158.zip"
+    },
+    "Description": "Bridges Matter protocol devices to AWS IoT",
+    "Environment": {
+     "Variables": {
+      "STAGE": "dev"
+     }
+    },
+    "FunctionName": "SmartHomeApp-dev-lambda-matter-bridge",
+    "Handler": "matter.bridgeHandler",
+    "Role": {
+     "Fn::GetAtt": [
+      "MatterBridgeFunctionServiceRoleEAEB43DB",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs18.x",
+    "Timeout": 30
+   },
+   "DependsOn": [
+    "MatterBridgeFunctionServiceRoleEAEB43DB"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "dev-TwinMakerStack/MatterBridgeFunction/Resource",
+    "aws:asset:path": "asset.e1bc105be636f99d58d1b06958fab4a6f5c00b48b5a51c3a620ac7449ccc1158",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "ZigbeeBridgeFunctionServiceRole65395213": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-TwinMakerStack/ZigbeeBridgeFunction/ServiceRole/Resource"
+   }
+  },
+  "ZigbeeBridgeFunctionD9377818": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-703671935952-us-east-1",
+     "S3Key": "e1bc105be636f99d58d1b06958fab4a6f5c00b48b5a51c3a620ac7449ccc1158.zip"
+    },
+    "Description": "Bridges Zigbee protocol devices to AWS IoT",
+    "Environment": {
+     "Variables": {
+      "STAGE": "dev"
+     }
+    },
+    "FunctionName": "SmartHomeApp-dev-lambda-zigbee-bridge",
+    "Handler": "zigbee.bridgeHandler",
+    "Role": {
+     "Fn::GetAtt": [
+      "ZigbeeBridgeFunctionServiceRole65395213",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs18.x",
+    "Timeout": 30
+   },
+   "DependsOn": [
+    "ZigbeeBridgeFunctionServiceRole65395213"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "dev-TwinMakerStack/ZigbeeBridgeFunction/Resource",
+    "aws:asset:path": "asset.e1bc105be636f99d58d1b06958fab4a6f5c00b48b5a51c3a620ac7449ccc1158",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "DigitalTwinUpdateFunctionServiceRole10FD28FE": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-TwinMakerStack/DigitalTwinUpdateFunction/ServiceRole/Resource"
+   }
+  },
+  "DigitalTwinUpdateFunctionServiceRoleDefaultPolicyBC6CF385": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "s3:Abort*",
+        "s3:DeleteObject*",
+        "s3:GetBucket*",
+        "s3:GetObject*",
+        "s3:List*",
+        "s3:PutObject",
+        "s3:PutObjectLegalHold",
+        "s3:PutObjectRetention",
+        "s3:PutObjectTagging",
+        "s3:PutObjectVersionTagging"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "TwinMakerAssetBucket85AC8A5F",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "TwinMakerAssetBucket85AC8A5F",
+             "Arn"
+            ]
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "DigitalTwinUpdateFunctionServiceRoleDefaultPolicyBC6CF385",
+    "Roles": [
+     {
+      "Ref": "DigitalTwinUpdateFunctionServiceRole10FD28FE"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-TwinMakerStack/DigitalTwinUpdateFunction/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "DigitalTwinUpdateFunction56BFB858": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-703671935952-us-east-1",
+     "S3Key": "e1bc105be636f99d58d1b06958fab4a6f5c00b48b5a51c3a620ac7449ccc1158.zip"
+    },
+    "Description": "Updates digital twins based on device state changes",
+    "Environment": {
+     "Variables": {
+      "STAGE": "dev",
+      "ASSET_BUCKET": {
+       "Ref": "TwinMakerAssetBucket85AC8A5F"
+      }
+     }
+    },
+    "FunctionName": "SmartHomeApp-dev-lambda-digital-twin-update",
+    "Handler": "twinmaker.updateTwin",
+    "Role": {
+     "Fn::GetAtt": [
+      "DigitalTwinUpdateFunctionServiceRole10FD28FE",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs18.x",
+    "Timeout": 30
+   },
+   "DependsOn": [
+    "DigitalTwinUpdateFunctionServiceRoleDefaultPolicyBC6CF385",
+    "DigitalTwinUpdateFunctionServiceRole10FD28FE"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "dev-TwinMakerStack/DigitalTwinUpdateFunction/Resource",
+    "aws:asset:path": "asset.e1bc105be636f99d58d1b06958fab4a6f5c00b48b5a51c3a620ac7449ccc1158",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "TwinMakerAssetBucketParam0156B2AE": {
+   "Type": "AWS::SSM::Parameter",
+   "Properties": {
+    "Description": "S3 bucket for TwinMaker assets",
+    "Name": "/twinmaker/dev/asset-bucket",
+    "Type": "String",
+    "Value": {
+     "Ref": "TwinMakerAssetBucket85AC8A5F"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-TwinMakerStack/TwinMakerAssetBucketParam/Resource"
+   }
+  },
+  "TwinMakerRoleArnParamE3F2CDE5": {
+   "Type": "AWS::SSM::Parameter",
+   "Properties": {
+    "Description": "IAM role ARN for TwinMaker",
+    "Name": "/twinmaker/dev/role-arn",
+    "Type": "String",
+    "Value": {
+     "Fn::GetAtt": [
+      "TwinMakerRoleFCD1C2A9",
+      "Arn"
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-TwinMakerStack/TwinMakerRoleArnParam/Resource"
+   }
+  },
+  "CDKMetadata": {
+   "Type": "AWS::CDK::Metadata",
+   "Properties": {
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/+2UTWsbMRCGf0vmGGQ1cdpD92aXFnppgx16WUwYSxNH8a606MPBiP3vRdrV4uAGSml7KD0so31nRvNII2nOr9+/41cX+OxmQu5njdryuPYo9gyf3X10Nzwug9iTryNs8+ALtgQVXAIDS605YHNrGiWOUIElj0oDgwNZp4wmCZW3gfoN+/Cgh3nYYJboqN70TGHL48o0VEdA50JLcnmEKkJnlRaqw2YhhAnajyWHmJSwEF4ZneWeQYsadyQziiIHVR1faMeFHWM3PYuAUt6Zwl3HU7HUPfN6j+Lxs26UpskHl/ATzr+4rn+z1J9oTD6TCY0NelKnhDuTPGfznMtSrj16akl7V5B+10SZcIDrWYPtViKPn4LOW1lHsEF7NV1GYWQZPqKWDdnxL8WYUFpC+qCs0anOqEhywqpu6g+Dh7HGdNVHwo+nuXm/Cv5/lB+hvO7MrS2t7Jm7uUfnyDu+SIY516Zn2Cq9u0WLLXmydYSujE/eYJejvmET6BXyRPKLmcMJLLl9z1bkTLCCykrKt2EZfO1xp/QuZX0Nvgu+Z9pI4k/uzWE+59dv+dXFk1NqNjaJrwb7Hdw5olCHBgAA"
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-TwinMakerStack/CDKMetadata/Default"
+   }
+  }
+ },
+ "Outputs": {
+  "TwinMakerAssetBucketName": {
+   "Description": "S3 bucket for TwinMaker assets",
+   "Value": {
+    "Ref": "TwinMakerAssetBucket85AC8A5F"
+   },
+   "Export": {
+    "Name": "TwinMakerAssetBucketName-dev"
+   }
+  },
+  "TwinMakerRoleArn": {
+   "Description": "IAM role ARN for TwinMaker",
+   "Value": {
+    "Fn::GetAtt": [
+     "TwinMakerRoleFCD1C2A9",
+     "Arn"
+    ]
+   },
+   "Export": {
+    "Name": "TwinMakerRoleArn-dev"
+   }
+  },
+  "MatterBridgeFunctionName": {
+   "Description": "Lambda function for Matter protocol bridge",
+   "Value": {
+    "Ref": "MatterBridgeFunction4B989D70"
+   },
+   "Export": {
+    "Name": "MatterBridgeFunctionName-dev"
+   }
+  },
+  "ZigbeeBridgeFunctionName": {
+   "Description": "Lambda function for Zigbee protocol bridge",
+   "Value": {
+    "Ref": "ZigbeeBridgeFunctionD9377818"
+   },
+   "Export": {
+    "Name": "ZigbeeBridgeFunctionName-dev"
+   }
+  }
+ },
+ "Parameters": {
+  "BootstrapVersion": {
+   "Type": "AWS::SSM::Parameter::Value<String>",
+   "Default": "/cdk-bootstrap/hnb659fds/version",
+   "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+  }
+ },
+ "Rules": {
+  "CheckBootstrapVersion": {
+   "Assertions": [
+    {
+     "Assert": {
+      "Fn::Not": [
+       {
+        "Fn::Contains": [
+         [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+         ],
+         {
+          "Ref": "BootstrapVersion"
+         }
+        ]
+       }
+      ]
+     },
+     "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+    }
+   ]
+  }
+ }
+}

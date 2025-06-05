@@ -1,0 +1,10 @@
+{
+  "body": "{\"deviceId\":\"test-device-72b54325\",\"name\":\"Test Relay Device\",\"type\":\"relay\",\"location\":\"Test Room\",\"components\":[{\"type\":\"toggle\",\"field\":\"relay1\",\"label\":\"Relay 1\"},{\"type\":\"toggle\",\"field\":\"relay2\",\"label\":\"Relay 2\"}]}",
+  "requestContext": {
+    "authorizer": {
+      "claims": {
+        "sub": "test-user"
+      }
+    }
+  }
+}

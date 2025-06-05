@@ -1,0 +1,12 @@
+{
+  "deviceId": "esp32-relay-001",
+  "type": "relay",
+  "location": "Floor 1 - Generator Room",
+  "features": ["relay1", "relay2", "powerMeter"],
+  "labels": {
+    "relay1": "AC Main 1",
+    "relay2": "AC Main 2",
+    "powerMeter": "Power Consumption"
+  },
+  "uiVersion": "v1"
+}

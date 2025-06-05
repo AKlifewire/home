@@ -1,0 +1,59 @@
+{
+  "deviceId": "test-device-001",
+  "deviceType": "multifunction",
+  "components": [
+    {
+      "type": "relay",
+      "id": "relay-1",
+      "name": "Main Power",
+      "capabilities": ["switch"],
+      "config": {
+        "defaultState": "off",
+        "inverted": false
+      }
+    },
+    {
+      "type": "sensor",
+      "id": "temp-1",
+      "name": "Temperature Sensor",
+      "capabilities": ["read"],
+      "config": {
+        "unit": "C",
+        "interval": 60,
+        "precision": 1
+      }
+    },
+    {
+      "type": "camera",
+      "id": "cam-1",
+      "name": "Security Camera",
+      "capabilities": ["stream", "ptz", "snapshot"],
+      "config": {
+        "resolution": "1080p",
+        "streamUrl": "rtsp://test-device-001/cam1",
+        "ptzEnabled": true
+      }
+    },
+    {
+      "type": "energyMeter",
+      "id": "meter-1",
+      "name": "Power Monitor",
+      "capabilities": ["read", "log"],
+      "config": {
+        "maxPower": 5000,
+        "units": {
+          "power": "W",
+          "energy": "kWh",
+          "voltage": "V"
+        },
+        "logInterval": 300
+      }
+    }
+  ],
+  "metadata": {
+    "name": "Test Multi-Device",
+    "location": "Lab Room",
+    "version": "1.0.0",
+    "manufacturer": "Test Corp"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "version": "41.0.0",
+  "files": {
+    "3d3d5681cbe66de5c329b624b98f189ed7e0dc75db0567dd87b2fd50ebfe3a60": {
+      "displayName": "dev-SSMParameterStack Template",
+      "source": {
+        "path": "dev-SSMParameterStack.template.json",
+        "packaging": "file"
+      },
+      "destinations": {
+        "703671935952-us-east-1": {
+          "bucketName": "cdk-hnb659fds-assets-703671935952-us-east-1",
+          "objectKey": "3d3d5681cbe66de5c329b624b98f189ed7e0dc75db0567dd87b2fd50ebfe3a60.json",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::703671935952:role/cdk-hnb659fds-file-publishing-role-703671935952-us-east-1"
+        }
+      }
+    }
+  },
+  "dockerImages": {}
+}

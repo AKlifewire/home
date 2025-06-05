@@ -1,0 +1,77 @@
+{
+  "version": "1.0",
+  "metadata": {
+    "deviceType": "drone",
+    "deviceId": "drone-001",
+    "lastUpdated": "2025-06-01T12:00:00Z"
+  },
+  "screens": [
+    {
+      "id": "main",
+      "title": "Drone Control",
+      "widgets": [
+        {
+          "type": "video",
+          "componentId": "drone-cam",
+          "properties": {
+            "title": "Live Camera Feed",
+            "streamUrl": "rtsp://drone-001/main",
+            "protocol": "RTSP",
+            "controls": {
+              "ptz": true,
+              "snapshot": true,
+              "record": true
+            }
+          }
+        },
+        {
+          "type": "joystick",
+          "componentId": "flight-control",
+          "properties": {
+            "title": "Flight Controls",
+            "mode": "3axis",
+            "sensitivity": 0.75,
+            "invertY": true,
+            "zones": [
+              {
+                "name": "Take Off",
+                "angle": 90,
+                "action": "TAKE_OFF"
+              },
+              {
+                "name": "Land",
+                "angle": 270,
+                "action": "LAND"
+              },
+              {
+                "name": "Return Home",
+                "angle": 180,
+                "action": "RTH"
+              }
+            ]
+          }
+        },
+        {
+          "type": "gauge",
+          "componentId": "battery-status",
+          "properties": {
+            "title": "Battery",
+            "unit": "%",
+            "min": 0,
+            "max": 100,
+            "thresholds": [
+              {
+                "value": 20,
+                "color": "#FF0000"
+              },
+              {
+                "value": 50,
+                "color": "#FFA500"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1245 @@
+{
+ "Resources": {
+  "SubscriptionsTable40965A9D": {
+   "Type": "AWS::DynamoDB::Table",
+   "Properties": {
+    "AttributeDefinitions": [
+     {
+      "AttributeName": "userId",
+      "AttributeType": "S"
+     },
+     {
+      "AttributeName": "subscriptionId",
+      "AttributeType": "S"
+     }
+    ],
+    "BillingMode": "PAY_PER_REQUEST",
+    "KeySchema": [
+     {
+      "AttributeName": "userId",
+      "KeyType": "HASH"
+     },
+     {
+      "AttributeName": "subscriptionId",
+      "KeyType": "RANGE"
+     }
+    ],
+    "TableName": "SmartHomeSubscriptions-dev"
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "dev-PaymentStack/SubscriptionsTable/Resource"
+   }
+  },
+  "PaymentsTable48A42630": {
+   "Type": "AWS::DynamoDB::Table",
+   "Properties": {
+    "AttributeDefinitions": [
+     {
+      "AttributeName": "paymentId",
+      "AttributeType": "S"
+     },
+     {
+      "AttributeName": "userId",
+      "AttributeType": "S"
+     },
+     {
+      "AttributeName": "createdAt",
+      "AttributeType": "S"
+     }
+    ],
+    "BillingMode": "PAY_PER_REQUEST",
+    "GlobalSecondaryIndexes": [
+     {
+      "IndexName": "UserPaymentsIndex",
+      "KeySchema": [
+       {
+        "AttributeName": "userId",
+        "KeyType": "HASH"
+       },
+       {
+        "AttributeName": "createdAt",
+        "KeyType": "RANGE"
+       }
+      ],
+      "Projection": {
+       "ProjectionType": "ALL"
+      }
+     }
+    ],
+    "KeySchema": [
+     {
+      "AttributeName": "paymentId",
+      "KeyType": "HASH"
+     },
+     {
+      "AttributeName": "userId",
+      "KeyType": "RANGE"
+     }
+    ],
+    "TableName": "SmartHomePayments-dev"
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "dev-PaymentStack/PaymentsTable/Resource"
+   }
+  },
+  "PaymentLambdaRoleDADC2A22": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     },
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/AmazonSSMReadOnlyAccess"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-PaymentStack/PaymentLambdaRole/Resource"
+   }
+  },
+  "PaymentLambdaRoleDefaultPolicyBD67D7DA": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:DeleteItem",
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:UpdateItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "PaymentsTable48A42630",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::GetAtt": [
+          "SubscriptionsTable40965A9D",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "PaymentsTable48A42630",
+             "Arn"
+            ]
+           },
+           "/index/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "PaymentLambdaRoleDefaultPolicyBD67D7DA",
+    "Roles": [
+     {
+      "Ref": "PaymentLambdaRoleDADC2A22"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-PaymentStack/PaymentLambdaRole/DefaultPolicy/Resource"
+   }
+  },
+  "CreateSubscriptionFunction144726A9": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-703671935952-us-east-1",
+     "S3Key": "e1bc105be636f99d58d1b06958fab4a6f5c00b48b5a51c3a620ac7449ccc1158.zip"
+    },
+    "Description": "Creates a new subscription in Stripe",
+    "Environment": {
+     "Variables": {
+      "STAGE": "dev",
+      "SUBSCRIPTIONS_TABLE": {
+       "Ref": "SubscriptionsTable40965A9D"
+      },
+      "PAYMENTS_TABLE": {
+       "Ref": "PaymentsTable48A42630"
+      },
+      "USER_POOL_ID": {
+       "Fn::ImportValue": "dev-AuthStack:ExportsOutputRefUserPool6BA7E5F296FD7236"
+      },
+      "STRIPE_SECRET_KEY_PARAM": "/dev/payment/stripeSecretKey"
+     }
+    },
+    "FunctionName": "SmartHomeApp-dev-lambda-create-subscription",
+    "Handler": "payment.createSubscription",
+    "Role": {
+     "Fn::GetAtt": [
+      "PaymentLambdaRoleDADC2A22",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs18.x",
+    "Timeout": 30
+   },
+   "DependsOn": [
+    "PaymentLambdaRoleDefaultPolicyBD67D7DA",
+    "PaymentLambdaRoleDADC2A22"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "dev-PaymentStack/CreateSubscriptionFunction/Resource",
+    "aws:asset:path": "asset.e1bc105be636f99d58d1b06958fab4a6f5c00b48b5a51c3a620ac7449ccc1158",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "CancelSubscriptionFunction88525669": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-703671935952-us-east-1",
+     "S3Key": "e1bc105be636f99d58d1b06958fab4a6f5c00b48b5a51c3a620ac7449ccc1158.zip"
+    },
+    "Description": "Cancels an existing subscription in Stripe",
+    "Environment": {
+     "Variables": {
+      "STAGE": "dev",
+      "SUBSCRIPTIONS_TABLE": {
+       "Ref": "SubscriptionsTable40965A9D"
+      },
+      "STRIPE_SECRET_KEY_PARAM": "/dev/payment/stripeSecretKey"
+     }
+    },
+    "FunctionName": "SmartHomeApp-dev-lambda-cancel-subscription",
+    "Handler": "payment.cancelSubscription",
+    "Role": {
+     "Fn::GetAtt": [
+      "PaymentLambdaRoleDADC2A22",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs18.x",
+    "Timeout": 30
+   },
+   "DependsOn": [
+    "PaymentLambdaRoleDefaultPolicyBD67D7DA",
+    "PaymentLambdaRoleDADC2A22"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "dev-PaymentStack/CancelSubscriptionFunction/Resource",
+    "aws:asset:path": "asset.e1bc105be636f99d58d1b06958fab4a6f5c00b48b5a51c3a620ac7449ccc1158",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "StripeWebhookFunction73CC65ED": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-703671935952-us-east-1",
+     "S3Key": "e1bc105be636f99d58d1b06958fab4a6f5c00b48b5a51c3a620ac7449ccc1158.zip"
+    },
+    "Description": "Handles Stripe webhook events",
+    "Environment": {
+     "Variables": {
+      "STAGE": "dev",
+      "SUBSCRIPTIONS_TABLE": {
+       "Ref": "SubscriptionsTable40965A9D"
+      },
+      "PAYMENTS_TABLE": {
+       "Ref": "PaymentsTable48A42630"
+      },
+      "STRIPE_SECRET_KEY_PARAM": "/dev/payment/stripeSecretKey",
+      "STRIPE_WEBHOOK_SECRET_PARAM": "/dev/payment/stripeWebhookSecret"
+     }
+    },
+    "FunctionName": "SmartHomeApp-dev-lambda-stripe-webhook",
+    "Handler": "payment.webhookHandler",
+    "Role": {
+     "Fn::GetAtt": [
+      "PaymentLambdaRoleDADC2A22",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs18.x",
+    "Timeout": 30
+   },
+   "DependsOn": [
+    "PaymentLambdaRoleDefaultPolicyBD67D7DA",
+    "PaymentLambdaRoleDADC2A22"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "dev-PaymentStack/StripeWebhookFunction/Resource",
+    "aws:asset:path": "asset.e1bc105be636f99d58d1b06958fab4a6f5c00b48b5a51c3a620ac7449ccc1158",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "GetSubscriptionFunctionA299F056": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-703671935952-us-east-1",
+     "S3Key": "e1bc105be636f99d58d1b06958fab4a6f5c00b48b5a51c3a620ac7449ccc1158.zip"
+    },
+    "Description": "Gets subscription details",
+    "Environment": {
+     "Variables": {
+      "STAGE": "dev",
+      "SUBSCRIPTIONS_TABLE": {
+       "Ref": "SubscriptionsTable40965A9D"
+      },
+      "STRIPE_SECRET_KEY_PARAM": "/dev/payment/stripeSecretKey"
+     }
+    },
+    "FunctionName": "SmartHomeApp-dev-lambda-get-subscription",
+    "Handler": "payment.getSubscription",
+    "Role": {
+     "Fn::GetAtt": [
+      "PaymentLambdaRoleDADC2A22",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs18.x",
+    "Timeout": 30
+   },
+   "DependsOn": [
+    "PaymentLambdaRoleDefaultPolicyBD67D7DA",
+    "PaymentLambdaRoleDADC2A22"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "dev-PaymentStack/GetSubscriptionFunction/Resource",
+    "aws:asset:path": "asset.e1bc105be636f99d58d1b06958fab4a6f5c00b48b5a51c3a620ac7449ccc1158",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "PaymentApi54483FE7": {
+   "Type": "AWS::ApiGateway::RestApi",
+   "Properties": {
+    "Description": "API for payment processing",
+    "Name": "SmartHomePaymentApi-dev"
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-PaymentStack/PaymentApi/Resource"
+   }
+  },
+  "PaymentApiDeploymentF4CB84AD723570d9c4c77d770cea31329e287f1b": {
+   "Type": "AWS::ApiGateway::Deployment",
+   "Properties": {
+    "Description": "API for payment processing",
+    "RestApiId": {
+     "Ref": "PaymentApi54483FE7"
+    }
+   },
+   "DependsOn": [
+    "PaymentApiOPTIONS6E52DE41",
+    "PaymentApisubscriptionssubscriptionIdDELETE3720854B",
+    "PaymentApisubscriptionssubscriptionIdGETFF16530E",
+    "PaymentApisubscriptionssubscriptionIdOPTIONS250EB5D1",
+    "PaymentApisubscriptionssubscriptionId06217795",
+    "PaymentApisubscriptionsOPTIONSFE0C91C4",
+    "PaymentApisubscriptionsPOST11C1AD51",
+    "PaymentApisubscriptions232348AD",
+    "PaymentApiwebhooksOPTIONSAFB55F02",
+    "PaymentApiwebhooks04899744",
+    "PaymentApiwebhooksstripeOPTIONS40376805",
+    "PaymentApiwebhooksstripePOST629DFF93",
+    "PaymentApiwebhooksstripeE1D0CCAF"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "dev-PaymentStack/PaymentApi/Deployment/Resource"
+   }
+  },
+  "PaymentApiDeploymentStagedev1BFC35F9": {
+   "Type": "AWS::ApiGateway::Stage",
+   "Properties": {
+    "DeploymentId": {
+     "Ref": "PaymentApiDeploymentF4CB84AD723570d9c4c77d770cea31329e287f1b"
+    },
+    "RestApiId": {
+     "Ref": "PaymentApi54483FE7"
+    },
+    "StageName": "dev",
+    "TracingEnabled": true
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-PaymentStack/PaymentApi/DeploymentStage.dev/Resource"
+   }
+  },
+  "PaymentApiOPTIONS6E52DE41": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "ApiKeyRequired": false,
+    "AuthorizationType": "NONE",
+    "HttpMethod": "OPTIONS",
+    "Integration": {
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'",
+        "method.response.header.Access-Control-Allow-Origin": "'*'",
+        "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'"
+       },
+       "StatusCode": "204"
+      }
+     ],
+     "RequestTemplates": {
+      "application/json": "{ statusCode: 200 }"
+     },
+     "Type": "MOCK"
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Headers": true,
+       "method.response.header.Access-Control-Allow-Origin": true,
+       "method.response.header.Access-Control-Allow-Methods": true
+      },
+      "StatusCode": "204"
+     }
+    ],
+    "ResourceId": {
+     "Fn::GetAtt": [
+      "PaymentApi54483FE7",
+      "RootResourceId"
+     ]
+    },
+    "RestApiId": {
+     "Ref": "PaymentApi54483FE7"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-PaymentStack/PaymentApi/Default/OPTIONS/Resource"
+   }
+  },
+  "PaymentApisubscriptions232348AD": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Fn::GetAtt": [
+      "PaymentApi54483FE7",
+      "RootResourceId"
+     ]
+    },
+    "PathPart": "subscriptions",
+    "RestApiId": {
+     "Ref": "PaymentApi54483FE7"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-PaymentStack/PaymentApi/Default/subscriptions/Resource"
+   }
+  },
+  "PaymentApisubscriptionsOPTIONSFE0C91C4": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "ApiKeyRequired": false,
+    "AuthorizationType": "NONE",
+    "HttpMethod": "OPTIONS",
+    "Integration": {
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'",
+        "method.response.header.Access-Control-Allow-Origin": "'*'",
+        "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'"
+       },
+       "StatusCode": "204"
+      }
+     ],
+     "RequestTemplates": {
+      "application/json": "{ statusCode: 200 }"
+     },
+     "Type": "MOCK"
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Headers": true,
+       "method.response.header.Access-Control-Allow-Origin": true,
+       "method.response.header.Access-Control-Allow-Methods": true
+      },
+      "StatusCode": "204"
+     }
+    ],
+    "ResourceId": {
+     "Ref": "PaymentApisubscriptions232348AD"
+    },
+    "RestApiId": {
+     "Ref": "PaymentApi54483FE7"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-PaymentStack/PaymentApi/Default/subscriptions/OPTIONS/Resource"
+   }
+  },
+  "PaymentApisubscriptionssubscriptionId06217795": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Ref": "PaymentApisubscriptions232348AD"
+    },
+    "PathPart": "{subscriptionId}",
+    "RestApiId": {
+     "Ref": "PaymentApi54483FE7"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-PaymentStack/PaymentApi/Default/subscriptions/{subscriptionId}/Resource"
+   }
+  },
+  "PaymentApisubscriptionssubscriptionIdOPTIONS250EB5D1": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "ApiKeyRequired": false,
+    "AuthorizationType": "NONE",
+    "HttpMethod": "OPTIONS",
+    "Integration": {
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'",
+        "method.response.header.Access-Control-Allow-Origin": "'*'",
+        "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'"
+       },
+       "StatusCode": "204"
+      }
+     ],
+     "RequestTemplates": {
+      "application/json": "{ statusCode: 200 }"
+     },
+     "Type": "MOCK"
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Headers": true,
+       "method.response.header.Access-Control-Allow-Origin": true,
+       "method.response.header.Access-Control-Allow-Methods": true
+      },
+      "StatusCode": "204"
+     }
+    ],
+    "ResourceId": {
+     "Ref": "PaymentApisubscriptionssubscriptionId06217795"
+    },
+    "RestApiId": {
+     "Ref": "PaymentApi54483FE7"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-PaymentStack/PaymentApi/Default/subscriptions/{subscriptionId}/OPTIONS/Resource"
+   }
+  },
+  "PaymentApisubscriptionssubscriptionIdGETApiPermissiondevPaymentStackPaymentApi0D45D705GETsubscriptionssubscriptionId148BB7F8": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "GetSubscriptionFunctionA299F056",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:aws:execute-api:us-east-1:703671935952:",
+       {
+        "Ref": "PaymentApi54483FE7"
+       },
+       "/",
+       {
+        "Ref": "PaymentApiDeploymentStagedev1BFC35F9"
+       },
+       "/GET/subscriptions/*"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-PaymentStack/PaymentApi/Default/subscriptions/{subscriptionId}/GET/ApiPermission.devPaymentStackPaymentApi0D45D705.GET..subscriptions.{subscriptionId}"
+   }
+  },
+  "PaymentApisubscriptionssubscriptionIdGETApiPermissionTestdevPaymentStackPaymentApi0D45D705GETsubscriptionssubscriptionId701779C0": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "GetSubscriptionFunctionA299F056",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:aws:execute-api:us-east-1:703671935952:",
+       {
+        "Ref": "PaymentApi54483FE7"
+       },
+       "/test-invoke-stage/GET/subscriptions/*"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-PaymentStack/PaymentApi/Default/subscriptions/{subscriptionId}/GET/ApiPermission.Test.devPaymentStackPaymentApi0D45D705.GET..subscriptions.{subscriptionId}"
+   }
+  },
+  "PaymentApisubscriptionssubscriptionIdGETFF16530E": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "AuthorizationType": "NONE",
+    "HttpMethod": "GET",
+    "Integration": {
+     "IntegrationHttpMethod": "POST",
+     "Type": "AWS_PROXY",
+     "Uri": {
+      "Fn::Join": [
+       "",
+       [
+        "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/",
+        {
+         "Fn::GetAtt": [
+          "GetSubscriptionFunctionA299F056",
+          "Arn"
+         ]
+        },
+        "/invocations"
+       ]
+      ]
+     }
+    },
+    "ResourceId": {
+     "Ref": "PaymentApisubscriptionssubscriptionId06217795"
+    },
+    "RestApiId": {
+     "Ref": "PaymentApi54483FE7"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-PaymentStack/PaymentApi/Default/subscriptions/{subscriptionId}/GET/Resource"
+   }
+  },
+  "PaymentApisubscriptionssubscriptionIdDELETEApiPermissiondevPaymentStackPaymentApi0D45D705DELETEsubscriptionssubscriptionId9090C69B": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "CancelSubscriptionFunction88525669",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:aws:execute-api:us-east-1:703671935952:",
+       {
+        "Ref": "PaymentApi54483FE7"
+       },
+       "/",
+       {
+        "Ref": "PaymentApiDeploymentStagedev1BFC35F9"
+       },
+       "/DELETE/subscriptions/*"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-PaymentStack/PaymentApi/Default/subscriptions/{subscriptionId}/DELETE/ApiPermission.devPaymentStackPaymentApi0D45D705.DELETE..subscriptions.{subscriptionId}"
+   }
+  },
+  "PaymentApisubscriptionssubscriptionIdDELETEApiPermissionTestdevPaymentStackPaymentApi0D45D705DELETEsubscriptionssubscriptionId74072BE4": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "CancelSubscriptionFunction88525669",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:aws:execute-api:us-east-1:703671935952:",
+       {
+        "Ref": "PaymentApi54483FE7"
+       },
+       "/test-invoke-stage/DELETE/subscriptions/*"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-PaymentStack/PaymentApi/Default/subscriptions/{subscriptionId}/DELETE/ApiPermission.Test.devPaymentStackPaymentApi0D45D705.DELETE..subscriptions.{subscriptionId}"
+   }
+  },
+  "PaymentApisubscriptionssubscriptionIdDELETE3720854B": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "AuthorizationType": "NONE",
+    "HttpMethod": "DELETE",
+    "Integration": {
+     "IntegrationHttpMethod": "POST",
+     "Type": "AWS_PROXY",
+     "Uri": {
+      "Fn::Join": [
+       "",
+       [
+        "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/",
+        {
+         "Fn::GetAtt": [
+          "CancelSubscriptionFunction88525669",
+          "Arn"
+         ]
+        },
+        "/invocations"
+       ]
+      ]
+     }
+    },
+    "ResourceId": {
+     "Ref": "PaymentApisubscriptionssubscriptionId06217795"
+    },
+    "RestApiId": {
+     "Ref": "PaymentApi54483FE7"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-PaymentStack/PaymentApi/Default/subscriptions/{subscriptionId}/DELETE/Resource"
+   }
+  },
+  "PaymentApisubscriptionsPOSTApiPermissiondevPaymentStackPaymentApi0D45D705POSTsubscriptions5C00AD1C": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "CreateSubscriptionFunction144726A9",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:aws:execute-api:us-east-1:703671935952:",
+       {
+        "Ref": "PaymentApi54483FE7"
+       },
+       "/",
+       {
+        "Ref": "PaymentApiDeploymentStagedev1BFC35F9"
+       },
+       "/POST/subscriptions"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-PaymentStack/PaymentApi/Default/subscriptions/POST/ApiPermission.devPaymentStackPaymentApi0D45D705.POST..subscriptions"
+   }
+  },
+  "PaymentApisubscriptionsPOSTApiPermissionTestdevPaymentStackPaymentApi0D45D705POSTsubscriptions24E7833C": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "CreateSubscriptionFunction144726A9",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:aws:execute-api:us-east-1:703671935952:",
+       {
+        "Ref": "PaymentApi54483FE7"
+       },
+       "/test-invoke-stage/POST/subscriptions"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-PaymentStack/PaymentApi/Default/subscriptions/POST/ApiPermission.Test.devPaymentStackPaymentApi0D45D705.POST..subscriptions"
+   }
+  },
+  "PaymentApisubscriptionsPOST11C1AD51": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "AuthorizationType": "NONE",
+    "HttpMethod": "POST",
+    "Integration": {
+     "IntegrationHttpMethod": "POST",
+     "Type": "AWS_PROXY",
+     "Uri": {
+      "Fn::Join": [
+       "",
+       [
+        "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/",
+        {
+         "Fn::GetAtt": [
+          "CreateSubscriptionFunction144726A9",
+          "Arn"
+         ]
+        },
+        "/invocations"
+       ]
+      ]
+     }
+    },
+    "ResourceId": {
+     "Ref": "PaymentApisubscriptions232348AD"
+    },
+    "RestApiId": {
+     "Ref": "PaymentApi54483FE7"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-PaymentStack/PaymentApi/Default/subscriptions/POST/Resource"
+   }
+  },
+  "PaymentApiwebhooks04899744": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Fn::GetAtt": [
+      "PaymentApi54483FE7",
+      "RootResourceId"
+     ]
+    },
+    "PathPart": "webhooks",
+    "RestApiId": {
+     "Ref": "PaymentApi54483FE7"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-PaymentStack/PaymentApi/Default/webhooks/Resource"
+   }
+  },
+  "PaymentApiwebhooksOPTIONSAFB55F02": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "ApiKeyRequired": false,
+    "AuthorizationType": "NONE",
+    "HttpMethod": "OPTIONS",
+    "Integration": {
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'",
+        "method.response.header.Access-Control-Allow-Origin": "'*'",
+        "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'"
+       },
+       "StatusCode": "204"
+      }
+     ],
+     "RequestTemplates": {
+      "application/json": "{ statusCode: 200 }"
+     },
+     "Type": "MOCK"
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Headers": true,
+       "method.response.header.Access-Control-Allow-Origin": true,
+       "method.response.header.Access-Control-Allow-Methods": true
+      },
+      "StatusCode": "204"
+     }
+    ],
+    "ResourceId": {
+     "Ref": "PaymentApiwebhooks04899744"
+    },
+    "RestApiId": {
+     "Ref": "PaymentApi54483FE7"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-PaymentStack/PaymentApi/Default/webhooks/OPTIONS/Resource"
+   }
+  },
+  "PaymentApiwebhooksstripeE1D0CCAF": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Ref": "PaymentApiwebhooks04899744"
+    },
+    "PathPart": "stripe",
+    "RestApiId": {
+     "Ref": "PaymentApi54483FE7"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-PaymentStack/PaymentApi/Default/webhooks/stripe/Resource"
+   }
+  },
+  "PaymentApiwebhooksstripeOPTIONS40376805": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "ApiKeyRequired": false,
+    "AuthorizationType": "NONE",
+    "HttpMethod": "OPTIONS",
+    "Integration": {
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'",
+        "method.response.header.Access-Control-Allow-Origin": "'*'",
+        "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'"
+       },
+       "StatusCode": "204"
+      }
+     ],
+     "RequestTemplates": {
+      "application/json": "{ statusCode: 200 }"
+     },
+     "Type": "MOCK"
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Headers": true,
+       "method.response.header.Access-Control-Allow-Origin": true,
+       "method.response.header.Access-Control-Allow-Methods": true
+      },
+      "StatusCode": "204"
+     }
+    ],
+    "ResourceId": {
+     "Ref": "PaymentApiwebhooksstripeE1D0CCAF"
+    },
+    "RestApiId": {
+     "Ref": "PaymentApi54483FE7"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-PaymentStack/PaymentApi/Default/webhooks/stripe/OPTIONS/Resource"
+   }
+  },
+  "PaymentApiwebhooksstripePOSTApiPermissiondevPaymentStackPaymentApi0D45D705POSTwebhooksstripeFF9A8C03": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "StripeWebhookFunction73CC65ED",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:aws:execute-api:us-east-1:703671935952:",
+       {
+        "Ref": "PaymentApi54483FE7"
+       },
+       "/",
+       {
+        "Ref": "PaymentApiDeploymentStagedev1BFC35F9"
+       },
+       "/POST/webhooks/stripe"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-PaymentStack/PaymentApi/Default/webhooks/stripe/POST/ApiPermission.devPaymentStackPaymentApi0D45D705.POST..webhooks.stripe"
+   }
+  },
+  "PaymentApiwebhooksstripePOSTApiPermissionTestdevPaymentStackPaymentApi0D45D705POSTwebhooksstripe4C41C17D": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "StripeWebhookFunction73CC65ED",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:aws:execute-api:us-east-1:703671935952:",
+       {
+        "Ref": "PaymentApi54483FE7"
+       },
+       "/test-invoke-stage/POST/webhooks/stripe"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-PaymentStack/PaymentApi/Default/webhooks/stripe/POST/ApiPermission.Test.devPaymentStackPaymentApi0D45D705.POST..webhooks.stripe"
+   }
+  },
+  "PaymentApiwebhooksstripePOST629DFF93": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "AuthorizationType": "NONE",
+    "HttpMethod": "POST",
+    "Integration": {
+     "IntegrationHttpMethod": "POST",
+     "Type": "AWS_PROXY",
+     "Uri": {
+      "Fn::Join": [
+       "",
+       [
+        "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/",
+        {
+         "Fn::GetAtt": [
+          "StripeWebhookFunction73CC65ED",
+          "Arn"
+         ]
+        },
+        "/invocations"
+       ]
+      ]
+     }
+    },
+    "ResourceId": {
+     "Ref": "PaymentApiwebhooksstripeE1D0CCAF"
+    },
+    "RestApiId": {
+     "Ref": "PaymentApi54483FE7"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-PaymentStack/PaymentApi/Default/webhooks/stripe/POST/Resource"
+   }
+  },
+  "StripeWebhookUrlParam2DBC37DC": {
+   "Type": "AWS::SSM::Parameter",
+   "Properties": {
+    "Description": "Stripe webhook URL",
+    "Name": "/payment/dev/stripe-webhook-url",
+    "Type": "String",
+    "Value": {
+     "Fn::Join": [
+      "",
+      [
+       "https://",
+       {
+        "Ref": "PaymentApi54483FE7"
+       },
+       ".execute-api.us-east-1.",
+       {
+        "Ref": "AWS::URLSuffix"
+       },
+       "/",
+       {
+        "Ref": "PaymentApiDeploymentStagedev1BFC35F9"
+       },
+       "/webhooks/stripe"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-PaymentStack/StripeWebhookUrlParam/Resource"
+   }
+  },
+  "CDKMetadata": {
+   "Type": "AWS::CDK::Metadata",
+   "Properties": {
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/+1YUW/bOAz+LdPjoPrabvdweUu7bCjWrrkkd8AhKArGYhy2suST6PY8w//9INlOvHXd3R46dEOerHwUafIjRdE5To5++zU5fAH3/iBVtweaVkk9Z0hvJdz761pVBnKrVkm9gJXGZS04PD9AjmIkXgopCnBMTNa8x0qMamF2Iq6KsJyLRgpvHX99x4q0JpNdWBWg6fiv6+lkdj2b/P7HZL4QUjjM7R3oqdWUVmIkHDKQEY18nj6BUu+0XYGeY2qNAledGYX/iNGyFhRW3+5v4ewNpmHfokXH5+eiuWqu5OnaxPw0kiBP6pmNqQLvyxzVSbRZODIpFaDHaWpLw539dk9QGEfLEW6kyMFAhipGRuij20OsGrt+72OCq46Ghe35WdZDsHfogZQZ0s2Z0WRwKxMvxX8IIwshENniAd0qLGyQPLDzEFZqzsCYo2HfuRQNtzYbqSFfKUjqt6WJfC1r4UrDtE1Y2tZKWG7AKI2uzyTlaMuedxffG5do7shZE17ZIQp96qjY5kOKdfe6bdF0zk6GujHiQSTfXfizMfGzxbNnYtcp+gMcDze6nLwnaxrpX12D98g+GYeH9K+SkzK9RT4Bj8srCQVlwHgPVVLP0PO4oNAD2tWgpz+MT2GhbXUZIR9asmfIhtcWO0jJZBMTWrkSI3YlNkFvDaXmU+v81OFaU7bhgRXQ2t5fOsoo/G6beoAukDdWtVDTdcfWS/kmehJoWdZfcBQK6jMY77Pddj/My8Ke24xS0Gfqs9a+x7+MxyTs2JTzUAAxBT3U8f6/KiNaiybkDL0tXYqxRkONyzb7bWVGUX9emYtW1gFkGDMHg/TbQW2VvLGOPoYDPvx11mv3EAymkjg/QEHvsZrh3yW54PEatMfH9kuRR5dm6AtrfDdueAYu/emu17hOPAUHOTI63w8aHeMXn1j5ViNyT9aerGdIVtdxf3AL+5TvyXq68xHvwlZhexku6/BhvbtUC+DNFBxvq/mJpP2oFZ1opPd5+EvFkcm2kbeutevBNe/jrj9Bl49Nkd3HaK/bNLtou/E2jrgyzq5hNiCTBY3LkouSG2mswuTG/3J3fJwcvU4OX9x4ooNuuk9m7fNfB4Nc6xUSAAA="
+   },
+   "Metadata": {
+    "aws:cdk:path": "dev-PaymentStack/CDKMetadata/Default"
+   }
+  }
+ },
+ "Outputs": {
+  "PaymentApiEndpoint1E940D76": {
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "https://",
+      {
+       "Ref": "PaymentApi54483FE7"
+      },
+      ".execute-api.us-east-1.",
+      {
+       "Ref": "AWS::URLSuffix"
+      },
+      "/",
+      {
+       "Ref": "PaymentApiDeploymentStagedev1BFC35F9"
+      },
+      "/"
+     ]
+    ]
+   }
+  },
+  "PaymentApiUrl": {
+   "Description": "URL for the Payment API",
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "https://",
+      {
+       "Ref": "PaymentApi54483FE7"
+      },
+      ".execute-api.us-east-1.",
+      {
+       "Ref": "AWS::URLSuffix"
+      },
+      "/",
+      {
+       "Ref": "PaymentApiDeploymentStagedev1BFC35F9"
+      },
+      "/"
+     ]
+    ]
+   },
+   "Export": {
+    "Name": "PaymentApiUrl-dev"
+   }
+  },
+  "StripeWebhookUrl": {
+   "Description": "URL for Stripe webhooks",
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "https://",
+      {
+       "Ref": "PaymentApi54483FE7"
+      },
+      ".execute-api.us-east-1.",
+      {
+       "Ref": "AWS::URLSuffix"
+      },
+      "/",
+      {
+       "Ref": "PaymentApiDeploymentStagedev1BFC35F9"
+      },
+      "/webhooks/stripe"
+     ]
+    ]
+   },
+   "Export": {
+    "Name": "StripeWebhookUrl-dev"
+   }
+  },
+  "SubscriptionsTableName": {
+   "Description": "DynamoDB table for subscriptions",
+   "Value": {
+    "Ref": "SubscriptionsTable40965A9D"
+   },
+   "Export": {
+    "Name": "SubscriptionsTableName-dev"
+   }
+  },
+  "PaymentsTableName": {
+   "Description": "DynamoDB table for payment history",
+   "Value": {
+    "Ref": "PaymentsTable48A42630"
+   },
+   "Export": {
+    "Name": "PaymentsTableName-dev"
+   }
+  }
+ },
+ "Parameters": {
+  "BootstrapVersion": {
+   "Type": "AWS::SSM::Parameter::Value<String>",
+   "Default": "/cdk-bootstrap/hnb659fds/version",
+   "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+  }
+ },
+ "Rules": {
+  "CheckBootstrapVersion": {
+   "Assertions": [
+    {
+     "Assert": {
+      "Fn::Not": [
+       {
+        "Fn::Contains": [
+         [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+         ],
+         {
+          "Ref": "BootstrapVersion"
+         }
+        ]
+       }
+      ]
+     },
+     "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+    }
+   ]
+  }
+ }
+}

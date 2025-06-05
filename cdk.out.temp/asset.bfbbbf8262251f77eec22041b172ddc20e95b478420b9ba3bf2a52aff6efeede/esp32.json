@@ -1,0 +1,175 @@
+{
+  "version": "1.0",
+  "title": "ESP32 Device Control",
+  "description": "Control interface for ESP32 devices",
+  "layout": {
+    "type": "responsive",
+    "columns": 12,
+    "padding": 16
+  },
+  "sections": [
+    {
+      "id": "header",
+      "type": "header",
+      "title": "${device.name}",
+      "subtitle": "${device.location}",
+      "actions": [
+        {
+          "id": "refresh",
+          "label": "Refresh",
+          "icon": "refresh",
+          "action": "refreshDevice",
+          "params": {
+            "deviceId": "${device.id}"
+          }
+        },
+        {
+          "id": "settings",
+          "label": "Settings",
+          "icon": "settings",
+          "action": "deviceSettings",
+          "params": {
+            "deviceId": "${device.id}"
+          }
+        }
+      ]
+    },
+    {
+      "id": "status",
+      "type": "summary",
+      "title": "Device Status",
+      "items": [
+        {
+          "id": "status",
+          "label": "Status",
+          "value": "${device.status}",
+          "icon": "check_circle"
+        },
+        {
+          "id": "lastSeen",
+          "label": "Last Seen",
+          "value": "${device.lastSeen}",
+          "icon": "access_time"
+        },
+        {
+          "id": "firmware",
+          "label": "Firmware",
+          "value": "${device.firmware}",
+          "icon": "system_update"
+        }
+      ]
+    },
+    {
+      "id": "controls",
+      "type": "controlPanel",
+      "title": "Controls",
+      "controls": [
+        {
+          "id": "power",
+          "type": "switch",
+          "label": "Power",
+          "icon": "power_settings_new",
+          "value": "${device.state.power}",
+          "action": "togglePower",
+          "params": {
+            "deviceId": "${device.id}"
+          }
+        },
+        {
+          "id": "brightness",
+          "type": "slider",
+          "label": "Brightness",
+          "icon": "brightness_medium",
+          "min": 0,
+          "max": 100,
+          "value": "${device.state.brightness}",
+          "action": "setBrightness",
+          "params": {
+            "deviceId": "${device.id}"
+          }
+        }
+      ]
+    },
+    {
+      "id": "sensors",
+      "type": "controlPanel",
+      "title": "Sensors",
+      "controls": [
+        {
+          "id": "temperature",
+          "type": "reading",
+          "label": "Temperature",
+          "icon": "thermostat",
+          "value": "${device.sensors.temperature}",
+          "unit": "°C"
+        },
+        {
+          "id": "humidity",
+          "type": "reading",
+          "label": "Humidity",
+          "icon": "water_drop",
+          "value": "${device.sensors.humidity}",
+          "unit": "%"
+        }
+      ]
+    },
+    {
+      "id": "telemetry",
+      "type": "chart",
+      "title": "Telemetry",
+      "chartType": "line",
+      "timeRange": "24h",
+      "metrics": [
+        {
+          "id": "temperature",
+          "label": "Temperature",
+          "color": "#F44336"
+        },
+        {
+          "id": "humidity",
+          "label": "Humidity",
+          "color": "#2196F3"
+        },
+        {
+          "id": "energy",
+          "label": "Energy",
+          "color": "#4CAF50"
+        }
+      ]
+    },
+    {
+      "id": "actions",
+      "type": "actionPanel",
+      "title": "Device Actions",
+      "actions": [
+        {
+          "id": "restart",
+          "label": "Restart Device",
+          "icon": "restart_alt",
+          "action": "restartDevice",
+          "params": {
+            "deviceId": "${device.id}"
+          }
+        },
+        {
+          "id": "update",
+          "label": "Update Firmware",
+          "icon": "system_update",
+          "action": "updateFirmware",
+          "params": {
+            "deviceId": "${device.id}"
+          }
+        },
+        {
+          "id": "logs",
+          "label": "View Logs",
+          "icon": "list",
+          "action": "viewDeviceLogs",
+          "params": {
+            "deviceId": "${device.id}"
+          }
+        }
+      ]
+    }
+  ]
+}

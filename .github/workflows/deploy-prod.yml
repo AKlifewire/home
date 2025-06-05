@@ -4,12 +4,79 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
   workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Type "yes" to confirm production deployment'
+        required: true
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  FLUTTER_VERSION: '3.16.0'
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: Run security audit
+        run: npm audit
+
+  flutter-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+
+      - name: Get Flutter dependencies
+        run: |
+          cd smart_home_flutter
+          flutter pub get
+
+      - name: Run Flutter tests
+        run: |
+          cd smart_home_flutter
+          flutter test
+
+      - name: Build Flutter web
+        run: |
+          cd smart_home_flutter
+          flutter build web --release
+
+      - name: Upload Flutter build
+        uses: actions/upload-artifact@v3
+        with:
+          name: flutter-web-build
+          path: smart_home_flutter/build/web
+
   deploy:
+    needs: [test, flutter-build]
     runs-on: ubuntu-latest
     environment: prod
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.confirmation == 'yes' || github.event_name == 'push'
     
     steps:
       - name: Checkout code
@@ -29,11 +96,47 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-duration-seconds: 1200
+          mask-aws-account-id: true
+
+      - name: Download Flutter build
+        uses: actions/download-artifact@v3
+        with:
+          name: flutter-web-build
+          path: smart_home_flutter/build/web
           
       - name: Build CDK app
         run: npm run build
         
+      - name: Deploy Lambda functions
+        run: |
+          cd lambda
+          npm ci
+          npm run build
+          cd ..
+
       - name: Deploy CDK stacks
         run: |
-          npx cdk deploy --all --require-approval never --context environment=prod
+          npx cdk deploy --all --require-approval never --context environment=prod --exclude prod-MonitoringStack
+
+      - name: Update frontend config
+        run: |
+          node get-ssm-params.js
+          node update-frontend-config.js
+
+      - name: Run smoke tests
+        if: success()
+        run: |
+          npm run test:workflow -- --env prod
+
+      - name: Create Release
+        if: success() && github.event_name == 'push'
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ github.run_number }}
+          release_name: Release v${{ github.run_number }}
+          draft: false
+          prerelease: false

@@ -1,130 +1,115 @@
 type Query {
-  getUiPage(userId: ID!, deviceType: String): UIPageResult
-  getMyDevices(userId: ID!): DeviceListResult
-  getDeviceState(deviceId: ID!): DeviceStateResult
-  getAnalytics(deviceId: ID!, timeRange: String): AnalyticsResult
-  getUiJson(userId: String, deviceType: String, uiType: String): UiJsonResult
+  # Get UI JSON for a specific device
+  getDeviceUI(deviceId: String!): DeviceUIResponse!
+  
+  # Batch get UI JSON for multiple devices
+  batchGetDeviceUIs(deviceIds: [String!]!): [DeviceUIResponse!]!
+  
+  # Get devices for the current user
+  getDevices: [Device!]!
+  
+  # Get a specific device
+  getDevice(deviceId: String!): Device
 }
 
 type Mutation {
-  controlRelay(deviceId: ID!, relayId: String!, state: Boolean!): DeviceCommandResult
-  registerDevice(userId: ID!, deviceCode: String!): DeviceRegistrationResult
-  removeDevice(userId: ID!, deviceId: ID!): DeviceRegistrationResult
+  # Register a new device
+  registerDevice(input: RegisterDeviceInput!): RegisterDeviceResponse!
+  
+  # Update device information
+  updateDevice(input: UpdateDeviceInput!): Device!
+  
+  # Delete a device
+  deleteDevice(deviceId: String!): DeleteDeviceResponse!
 }
 
 type Subscription {
-  onDeviceUpdate(deviceId: ID!): DeviceState
-  onDeviceAdded(userId: ID!): Device
+  # Subscribe to device status updates
+  onDeviceStatusChanged(deviceId: String!): DeviceStatus
+    @aws_subscribe(mutations: ["updateDeviceStatus"])
 }
 
-type UIPageResult {
-  success: Boolean!
-  data: UIPage
+# Device UI response
+type DeviceUIResponse {
+  statusCode: Int!
+  deviceId: String!
+  uiJson: AWSJSON
+  error: String
+  isDefault: Boolean
+  isFallback: Boolean
 }
 
-type UIPage {
-  title: String
-  layout: AWSJSON
-  components: [UIComponent]
-}
-
-type UIComponent {
-  id: ID!
-  type: String!
-  properties: AWSJSON
-}
-
-type DeviceListResult {
-  success: Boolean!
-  devices: [Device]
-}
-
-type Device {
-  id: ID!
-  name: String
+# Device registration input
+input RegisterDeviceInput {
+  deviceId: String!
+  name: String!
   type: String!
   location: String
-  capabilities: [String]
-  relays: [Relay]
-  sensors: [Sensor]
-  firmware: String
-  lastConnected: AWSDateTime
-  userId: ID!
+  components: [ComponentInput]
 }
 
-type Relay {
-  id: ID!
-  name: String
-  state: Boolean
-  deviceId: ID!
-}
-
-type Sensor {
-  id: ID!
-  name: String
+# Component input for device registration
+input ComponentInput {
   type: String!
-  value: Float
+  field: String!
+  label: String!
   unit: String
-  deviceId: ID!
+  min: Float
+  max: Float
 }
 
-type DeviceCommandResult {
-  success: Boolean!
+# Device registration response
+type RegisterDeviceResponse {
+  statusCode: Int!
   message: String
-  deviceId: ID
-  relayId: String
-  newState: Boolean
+  deviceId: String
+  certificatePem: String
+  privateKey: String
+  publicKey: String
+  setupInstructions: String
+  error: String
 }
 
-type DeviceRegistrationResult {
-  success: Boolean!
+# Update device input
+input UpdateDeviceInput {
+  deviceId: String!
+  name: String
+  location: String
+  components: [ComponentInput]
+}
+
+# Delete device response
+type DeleteDeviceResponse {
+  statusCode: Int!
   message: String
-  device: Device
+  deviceId: String
+  error: String
 }
 
-type DeviceStateResult {
-  success: Boolean!
-  state: DeviceState
+# Device model
+type Device {
+  deviceId: String!
+  name: String!
+  type: String!
+  location: String
+  components: [Component]
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
 }
 
-type DeviceState {
-  deviceId: ID!
-  online: Boolean!
-  relayStates: [RelayState]
-  sensorReadings: [SensorReading]
-  lastUpdated: AWSDateTime
+# Component model
+type Component {
+  type: String!
+  field: String!
+  label: String!
+  unit: String
+  min: Float
+  max: Float
 }
 
-type RelayState {
-  relayId: String!
-  state: Boolean!
-}
-
-type SensorReading {
-  sensorId: String!
-  value: Float!
-  timestamp: AWSDateTime
-}
-
-type AnalyticsResult {
-  success: Boolean!
-  data: AnalyticsData
-}
-
-type AnalyticsData {
-  deviceId: ID
-  metrics: [MetricPoint]
-  insights: [String]
-}
-
-type UiJsonResult {
-  success: Boolean!
-  data: AWSJSON
-  message: String
-}
-
-type MetricPoint {
-  timestamp: AWSDateTime
-  value: Float
-  type: String
+# Device status
+type DeviceStatus {
+  deviceId: String!
+  status: String!
+  timestamp: AWSDateTime!
 }

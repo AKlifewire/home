@@ -1,0 +1,8 @@
+{
+  "name": "lambda-functions",
+  "version": "1.0.0",
+  "description": "Lambdas for Smart Home backend",
+  "dependencies": {
+    "aws-sdk": "^2.1692.0"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "version": "41.0.0",
+  "files": {
+    "e1bc105be636f99d58d1b06958fab4a6f5c00b48b5a51c3a620ac7449ccc1158": {
+      "displayName": "CreateSubscriptionFunction/Code",
+      "source": {
+        "path": "asset.e1bc105be636f99d58d1b06958fab4a6f5c00b48b5a51c3a620ac7449ccc1158",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "703671935952-us-east-1": {
+          "bucketName": "cdk-hnb659fds-assets-703671935952-us-east-1",
+          "objectKey": "e1bc105be636f99d58d1b06958fab4a6f5c00b48b5a51c3a620ac7449ccc1158.zip",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::703671935952:role/cdk-hnb659fds-file-publishing-role-703671935952-us-east-1"
+        }
+      }
+    },
+    "ccced53dab8035782fc5957e9a1d88d095230272cb49d0b0c1e00fa275d70418": {
+      "displayName": "dev-PaymentStack Template",
+      "source": {
+        "path": "dev-PaymentStack.template.json",
+        "packaging": "file"
+      },
+      "destinations": {
+        "703671935952-us-east-1": {
+          "bucketName": "cdk-hnb659fds-assets-703671935952-us-east-1",
+          "objectKey": "ccced53dab8035782fc5957e9a1d88d095230272cb49d0b0c1e00fa275d70418.json",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::703671935952:role/cdk-hnb659fds-file-publishing-role-703671935952-us-east-1"
+        }
+      }
+    }
+  },
+  "dockerImages": {}
+}

@@ -1,0 +1,44 @@
+{
+  "title": "Main Distribution Panel",
+  "deviceId": "esp32-energy-001",
+  "deviceType": "energyMeter",
+  "version": "v1",
+  "generated": "2023-06-15T10:35:22.456Z",
+  "components": [
+    {
+      "type": "gauge",
+      "field": "voltage",
+      "label": "Line Voltage",
+      "min": 0,
+      "max": 250,
+      "unit": "V"
+    },
+    {
+      "type": "gauge",
+      "field": "current",
+      "label": "Current Draw",
+      "min": 0,
+      "max": 100,
+      "unit": "A"
+    },
+    {
+      "type": "chart",
+      "field": "power",
+      "label": "Active Power",
+      "period": "hour",
+      "unit": "kW"
+    },
+    {
+      "type": "chart",
+      "field": "energy",
+      "label": "Energy Consumption",
+      "period": "day",
+      "unit": "kWh"
+    },
+    {
+      "type": "status",
+      "field": "status",
+      "label": "Device Status"
+    }
+  ]
+}

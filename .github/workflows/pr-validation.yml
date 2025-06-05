@@ -1,0 +1,111 @@
+name: Pull Request Validation
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  FLUTTER_VERSION: '3.16.0'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linting
+        run: npm run lint
+
+      - name: Run tests
+        run: npm test
+
+      - name: Security audit
+        run: npm audit
+
+      - name: CDK synth
+        run: npx cdk synth
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ env.AWS_REGION }}
+
+  flutter-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+
+      - name: Get Flutter dependencies
+        run: |
+          cd ai-agent/flutter_smart_home
+          flutter pub get
+
+      - name: Analyze Flutter code
+        run: |
+          cd ai-agent/flutter_smart_home
+          flutter analyze
+
+      - name: Run Flutter tests
+        run: |
+          cd ai-agent/flutter_smart_home
+          flutter test --coverage
+
+      - name: Build Flutter web
+        run: |
+          cd ai-agent/flutter_smart_home
+          flutter build web
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          file: ai-agent/flutter_smart_home/coverage/lcov.info
+          flags: flutter
+          name: flutter-coverage
+          fail_ci_if_error: false
+
+  lambda-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install Lambda dependencies
+        run: |
+          cd lambda
+          npm ci
+
+      - name: Run Lambda tests
+        run: |
+          cd lambda
+          npm test
+
+      - name: Run Lambda linting
+        run: |
+          cd lambda
+          npm run lint

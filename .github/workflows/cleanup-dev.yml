@@ -1,0 +1,86 @@
+name: Cleanup Development Resources
+
+on:
+  schedule:
+    # Run at 00:00 UTC on weekends
+    - cron: '0 0 * * 6,0'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to cleanup (dev/staging)'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - staging
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment || 'dev' }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-duration-seconds: 1200
+          mask-aws-account-id: true
+
+      - name: Destroy development stacks
+        run: |
+          ENV=${{ github.event.inputs.environment || 'dev' }}
+          echo "Destroying stacks for environment: $ENV"
+          
+          # List of stacks to destroy in reverse order
+          STACKS=(
+            "AmplifyHostingStack"
+            "AppSyncStack"
+            "LambdaStack"
+            "StorageStack"
+            "AuthStack"
+            "MonitoringStack"
+            "AnalyticsStack"
+            "IoTStack"
+            "GreengrassStack"
+            "TwinMakerStack"
+            "PaymentStack"
+            "SSMParameterStack"
+            "UiJsonStack"
+          )
+          
+          for stack in "${STACKS[@]}"; do
+            echo "Destroying $stack-$ENV"
+            npx cdk destroy "$stack-$ENV" --force --context environment=$ENV || true
+          done
+
+      - name: Notify on failure
+        if: failure()
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const env = '${{ github.event.inputs.environment || "dev" }}'
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Failed to cleanup ${env} environment`,
+              body: `The cleanup workflow for ${env} environment failed. Please check the [workflow run](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}) for details.`
+            })

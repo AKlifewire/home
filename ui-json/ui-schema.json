@@ -1,0 +1,354 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Smart Home UI Schema",
+  "description": "Schema for mapping device components to UI widgets",
+  "definitions": {
+    "baseWidget": {
+      "type": "object",
+      "required": ["type", "componentId"],
+      "properties": {
+        "type": { "type": "string" },
+        "componentId": { "type": "string" },
+        "properties": { "type": "object" }
+      }
+    },
+    "position": {
+      "type": "object",
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "z": { "type": "number" }
+      },
+      "required": ["x", "y"]
+    },
+    "statusIndicator": {
+      "type": "object",
+      "properties": {
+        "status": { "type": "string" },
+        "color": { "type": "string" },
+        "icon": { "type": "string" }
+      }
+    }
+  },
+  "widgets": {
+    "toggle": {
+      "extends": { "$ref": "#/definitions/baseWidget" },
+      "description": "Toggle switch for relays and binary controls",
+      "properties": {
+        "properties": {
+          "type": "object",
+          "properties": {
+            "title": { "type": "string" },
+            "icon": { "type": "string" },
+            "color": { "type": "string" },
+            "enableHaptics": { "type": "boolean" }
+          }
+        }
+      }
+    },
+    "gauge": {
+      "extends": { "$ref": "#/definitions/baseWidget" },
+      "description": "Sensor readings display (temperature, humidity, etc)",
+      "properties": {
+        "properties": {
+          "type": "object",
+          "properties": {
+            "title": { "type": "string" },
+            "unit": { "type": "string" },
+            "min": { "type": "number" },
+            "max": { "type": "number" },
+            "thresholds": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "value": { "type": "number" },
+                  "color": { "type": "string" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "chart": {
+      "extends": { "$ref": "#/definitions/baseWidget" },
+      "description": "Time-series data visualization",
+      "properties": {
+        "properties": {
+          "type": "object",
+          "properties": {
+            "title": { "type": "string" },
+            "chartType": { 
+              "type": "string",
+              "enum": ["line", "bar", "area"]
+            },
+            "timeRange": {
+              "type": "string",
+              "enum": ["1h", "6h", "24h", "7d", "30d"]
+            },
+            "series": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "label": { "type": "string" },
+                  "color": { "type": "string" },
+                  "dataPath": { "type": "string" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "video": {
+      "extends": { "$ref": "#/definitions/baseWidget" },
+      "description": "Live video stream display",
+      "properties": {
+        "properties": {
+          "type": "object",
+          "properties": {
+            "title": { "type": "string" },
+            "streamUrl": { "type": "string" },
+            "protocol": {
+              "type": "string",
+              "enum": ["RTSP", "HLS", "WebRTC"]
+            },
+            "controls": {
+              "type": "object",
+              "properties": {
+                "ptz": { "type": "boolean" },
+                "snapshot": { "type": "boolean" },
+                "record": { "type": "boolean" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "climate": {
+      "extends": { "$ref": "#/definitions/baseWidget" },
+      "description": "Thermostat and climate control",
+      "properties": {
+        "properties": {
+          "type": "object",
+          "properties": {
+            "title": { "type": "string" },
+            "modes": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["heat", "cool", "auto", "off"]
+              }
+            },
+            "tempUnit": {
+              "type": "string",
+              "enum": ["C", "F"]
+            },
+            "minTemp": { "type": "number" },
+            "maxTemp": { "type": "number" },
+            "schedule": { "type": "boolean" }
+          }
+        }
+      }    },
+    "joystick": {
+      "extends": { "$ref": "#/definitions/baseWidget" },
+      "description": "Virtual joystick control for drones and PTZ cameras",
+      "properties": {
+        "properties": {
+          "type": "object",
+          "properties": {
+            "title": { "type": "string" },
+            "mode": { 
+              "type": "string",
+              "enum": ["2axis", "3axis", "combined"]
+            },
+            "sensitivity": { "type": "number" },
+            "invertY": { "type": "boolean" },
+            "zones": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "angle": { "type": "number" },
+                  "action": { "type": "string" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "floorplan": {
+      "extends": { "$ref": "#/definitions/baseWidget" },
+      "description": "Interactive floor plan or map view",
+      "properties": {
+        "properties": {
+          "type": "object",
+          "properties": {
+            "title": { "type": "string" },
+            "imageUrl": { "type": "string" },
+            "scale": { "type": "number" },
+            "devices": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "deviceId": { "type": "string" },
+                  "position": { "$ref": "#/definitions/position" },
+                  "icon": { "type": "string" },
+                  "label": { "type": "string" }
+                }
+              }
+            },
+            "zones": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "polygon": {
+                    "type": "array",
+                    "items": { "$ref": "#/definitions/position" }
+                  },
+                  "color": { "type": "string" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "generator": {
+      "extends": { "$ref": "#/definitions/baseWidget" },
+      "description": "Generator monitoring dashboard",
+      "properties": {
+        "properties": {
+          "type": "object",
+          "properties": {
+            "title": { "type": "string" },
+            "metrics": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "value": { "type": "number" },
+                  "unit": { "type": "string" },
+                  "thresholds": {
+                    "type": "object",
+                    "properties": {
+                      "warning": { "type": "number" },
+                      "critical": { "type": "number" }
+                    }
+                  }
+                }
+              }
+            },
+            "controls": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "type": { 
+                    "type": "string",
+                    "enum": ["button", "switch", "slider"]
+                  },
+                  "action": { "type": "string" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "bodycam": {
+      "extends": { "$ref": "#/definitions/baseWidget" },
+      "description": "Body camera feed and controls",
+      "properties": {
+        "properties": {
+          "type": "object",
+          "properties": {
+            "title": { "type": "string" },
+            "streamUrl": { "type": "string" },
+            "status": { "$ref": "#/definitions/statusIndicator" },
+            "battery": {
+              "type": "object",
+              "properties": {
+                "level": { "type": "number" },
+                "charging": { "type": "boolean" }
+              }
+            },
+            "quickActions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "label": { "type": "string" },
+                  "icon": { "type": "string" },
+                  "action": { "type": "string" },
+                  "color": { "type": "string" }
+                }
+              }
+            },
+            "location": {
+              "type": "object",
+              "properties": {
+                "lat": { "type": "number" },
+                "lng": { "type": "number" },
+                "accuracy": { "type": "number" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "admin": {
+      "extends": { "$ref": "#/definitions/baseWidget" },
+      "description": "Administrative control panel",
+      "properties": {
+        "properties": {
+          "type": "object",
+          "properties": {
+            "title": { "type": "string" },
+            "role": {
+              "type": "string",
+              "enum": ["owner", "admin", "manager", "viewer"]
+            },
+            "sections": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "title": { "type": "string" },
+                  "icon": { "type": "string" },
+                  "controls": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "type": { 
+                          "type": "string",
+                          "enum": ["button", "toggle", "input", "select"]
+                        },
+                        "label": { "type": "string" },
+                        "action": { "type": "string" },
+                        "permissions": {
+                          "type": "array",
+                          "items": { "type": "string" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "deviceType": "relay",
+  "components": [
+    {
+      "type": "toggle",
+      "field": "relay1",
+      "label": "Relay 1",
+      "icon": "power"
+    },
+    {
+      "type": "status",
+      "field": "connectionStatus",
+      "label": "Connection"
+    }
+  ]
+}

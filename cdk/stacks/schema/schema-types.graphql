@@ -1,0 +1,5 @@
+# Device status input
+input DeviceStatusInput {
+  status: String!
+  timestamp: AWSDateTime
+}

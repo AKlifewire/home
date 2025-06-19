@@ -1,0 +1,26 @@
+{
+  "deviceType": "environment-sensor",
+  "components": [
+    {
+      "type": "gauge",
+      "field": "temperature",
+      "label": "Temperature",
+      "unit": "°C",
+      "min": -10,
+      "max": 50
+    },
+    {
+      "type": "gauge",
+      "field": "humidity",
+      "label": "Humidity",
+      "unit": "%",
+      "min": 0,
+      "max": 100
+    },
+    {
+      "type": "status",
+      "field": "battery",
+      "label": "Battery"
+    }
+  ]
+}

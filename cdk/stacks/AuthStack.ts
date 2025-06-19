@@ -31,9 +31,45 @@ export class AuthStack extends Stack {
       accountRecovery: cognito.AccountRecovery.EMAIL_ONLY,
     });
 
+    // Create a domain for the user pool
+    const userPoolDomain = userPool.addDomain('CognitoDomain', {
+      cognitoDomain: {
+        domainPrefix: `smart-home-iot-${props.envName}`,
+      },
+    });
+
+    // Create user pool client with OAuth settings
     const userPoolClient = new cognito.UserPoolClient(this, 'UserPoolClient', {
       userPool,
       generateSecret: false,
+      authFlows: {
+        userPassword: true,
+        userSrp: true,
+      },
+      oAuth: {
+        flows: {
+          authorizationCodeGrant: true,
+          implicitCodeGrant: true,
+        },
+        scopes: [
+          cognito.OAuthScope.PHONE,
+          cognito.OAuthScope.EMAIL,
+          cognito.OAuthScope.OPENID,
+          cognito.OAuthScope.PROFILE,
+          cognito.OAuthScope.COGNITO_ADMIN,
+        ],
+        callbackUrls: [
+          'http://localhost:3000/',
+          'https://main.d29b8yerucsuvm.amplifyapp.com/',
+        ],
+        logoutUrls: [
+          'http://localhost:3000/',
+          'https://main.d29b8yerucsuvm.amplifyapp.com/',
+        ],
+      },
+      supportedIdentityProviders: [
+        cognito.UserPoolClientIdentityProvider.COGNITO,
+      ],
     });
 
     const identityPool = new cognito.CfnIdentityPool(this, 'IdentityPool', {

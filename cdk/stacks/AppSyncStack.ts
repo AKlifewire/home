@@ -93,11 +93,17 @@ export class AppSyncStack extends cdk.Stack {
     const controlDeviceSource = api.addLambdaDataSource('ControlDeviceSource', controlDeviceFn);
     const getAnalyticsSource = api.addLambdaDataSource('GetAnalyticsSource', getAnalyticsFn);
 
+<<<<<<< Updated upstream
     // Resolver bindings
     getUIPageSource.createResolver('GetUIPageResolver', {
+=======
+    // Create resolvers with proper id and props parameters
+    uiJsonDataSource.createResolver('GetDeviceUIResolver', {
+>>>>>>> Stashed changes
       typeName: 'Query',
       fieldName: 'getUiPage',
     });
+<<<<<<< Updated upstream
 
     controlDeviceSource.createResolver('ControlDeviceResolver', {
       typeName: 'Mutation',
@@ -105,6 +111,10 @@ export class AppSyncStack extends cdk.Stack {
     });
 
     getAnalyticsSource.createResolver('GetAnalyticsResolver', {
+=======
+    
+    batchUiJsonDataSource.createResolver('BatchGetDeviceUIsResolver', {
+>>>>>>> Stashed changes
       typeName: 'Query',
       fieldName: 'getAnalytics',
     });

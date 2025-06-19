@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 # AK Smart Home Platform – Project Overview
 
 ## Overview
@@ -109,3 +110,109 @@ npx cdk deploy --all --require-approval never -c env=prod
 ## Contact / Author
 - *GitHub:* [AKlifewire](https://github.com/AKlifewire)
 - *Domain:* [ak.lifewire.com](https://ak.lifewire.com)
+=======
+# Smart Home IoT Platform
+
+This repository contains a complete smart home IoT platform built with AWS services and Flutter.
+
+## Architecture
+
+The platform consists of the following components:
+
+- **Frontend**: Flutter app for web and mobile
+- **Authentication**: AWS Cognito
+- **API**: AWS AppSync (GraphQL) and API Gateway (REST)
+- **Database**: DynamoDB
+- **IoT**: AWS IoT Core
+- **Storage**: S3
+- **Analytics**: Timestream
+- **Hosting**: AWS Amplify
+- **Edge Computing**: AWS Greengrass
+- **Digital Twin**: AWS TwinMaker
+- **Payments**: Stripe integration
+
+## Getting Started
+
+### Prerequisites
+
+- Flutter SDK
+- AWS CLI configured with appropriate credentials
+- Git
+
+### Setup
+
+1. Run the dependency checker:
+   ```
+   check-dependencies.bat
+   ```
+
+2. Launch the platform:
+   ```
+   launch-platform.bat
+   ```
+
+This will:
+- Update the AWS configuration with the latest stack outputs
+- Launch the Flutter app in Chrome
+
+### Using the Platform
+
+1. **Login**: Use your Cognito credentials to log in
+2. **Add Devices**: Click the + button to add a new device
+   - Scan a QR code or enter device details manually
+3. **Control Devices**: Tap on a device to view its controls
+   - The UI is dynamically generated based on the device type
+4. **Monitor**: View real-time data from your devices
+
+## Device Provisioning
+
+Devices connect to AWS IoT Core using the following endpoint:
+```
+a3rbulpildf8ig-ats.iot.us-east-1.amazonaws.com
+```
+
+The provisioning template `SmartHomeProvisioningTemplate-dev` is used to automatically register devices.
+
+## Key Endpoints
+
+- **GraphQL API**: https://m3kglrtcvfhwfp4mngf6tzqcn4.appsync-api.us-east-1.amazonaws.com/graphql
+- **Device Registration API**: https://7jp1vhved6.execute-api.us-east-1.amazonaws.com/prod/
+- **Payment API**: https://bnlpk8fq10.execute-api.us-east-1.amazonaws.com/dev/
+- **Web App**: https://d3g783pol7yev2.amplifyapp.com
+
+## Development
+
+### Project Structure
+
+- `smart_home_iot/`: Flutter app
+  - `lib/models/`: Data models
+  - `lib/providers/`: State management
+  - `lib/screens/`: UI screens
+  - `lib/services/`: API services
+  - `lib/widgets/`: Reusable UI components
+
+- `cdk/`: AWS CDK infrastructure code
+  - `stacks/`: CDK stack definitions
+  - `lambda/`: Lambda functions
+
+### Adding New Device Types
+
+1. Create a device configuration in the UI JSON format
+2. The platform will automatically generate a UI for the device
+
+### Customizing the UI
+
+The UI is dynamically generated based on the device type. You can customize the UI by modifying the UI JSON files in the `ui-json` directory.
+
+## Troubleshooting
+
+If you encounter any issues:
+
+1. Check the AWS configuration in `smart_home_iot/assets/config/aws_config.json`
+2. Verify that all AWS services are properly deployed
+3. Check the Flutter app logs for errors
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+>>>>>>> Stashed changes

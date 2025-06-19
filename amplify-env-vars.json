@@ -1,0 +1,6 @@
+{
+  "USER_POOL_ID": "us-east-1_IH9gm5mLx",
+  "USER_POOL_CLIENT_ID": "3r2f1933nmn33cc8okvabp542q",
+  "API_ENDPOINT": "https://7jp1vhved6.execute-api.us-east-1.amazonaws.com/prod",
+  "REGION": "us-east-1"
+}

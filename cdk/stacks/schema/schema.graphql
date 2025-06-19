@@ -1,0 +1,124 @@
+type Query {
+  # Get UI JSON for a specific device
+  getDeviceUI(deviceId: String!): DeviceUIResponse!
+  
+  # Batch get UI JSON for multiple devices
+  batchGetDeviceUIs(deviceIds: [String!]!): [DeviceUIResponse!]!
+  
+  # Get devices for the current user
+  getDevices: [Device!]!
+  
+  # Get a specific device
+  getDevice(deviceId: String!): Device
+}
+
+type Mutation {
+  # Register a new device
+  registerDevice(input: RegisterDeviceInput!): RegisterDeviceResponse!
+  
+  # Update device information
+  updateDevice(input: UpdateDeviceInput!): Device!
+  
+  # Delete a device
+  deleteDevice(deviceId: String!): DeleteDeviceResponse!
+
+  # Update device status
+  updateDeviceStatus(deviceId: String!, status: DeviceStatusInput!): DeviceStatus!
+}
+
+type Subscription {
+  # Subscribe to device status updates
+  onDeviceStatusChanged: DeviceStatus
+    @aws_subscribe(mutations: ["updateDeviceStatus"])
+}
+
+# Device UI response
+type DeviceUIResponse {
+  statusCode: Int!
+  deviceId: String!
+  uiJson: AWSJSON
+  error: String
+  isDefault: Boolean
+  isFallback: Boolean
+}
+
+# Device registration input
+input RegisterDeviceInput {
+  deviceId: String!
+  name: String!
+  type: String!
+  location: String
+  components: [ComponentInput]
+}
+
+# Component input for device registration
+input ComponentInput {
+  type: String!
+  field: String!
+  label: String!
+  unit: String
+  min: Float
+  max: Float
+}
+
+# Device registration response
+type RegisterDeviceResponse {
+  statusCode: Int!
+  message: String
+  deviceId: String
+  certificatePem: String
+  privateKey: String
+  publicKey: String
+  setupInstructions: String
+  error: String
+}
+
+# Update device input
+input UpdateDeviceInput {
+  deviceId: String!
+  name: String
+  location: String
+  components: [ComponentInput]
+}
+
+# Delete device response
+type DeleteDeviceResponse {
+  statusCode: Int!
+  message: String
+  deviceId: String
+  error: String
+}
+
+# Device model
+type Device {
+  deviceId: String!
+  name: String!
+  type: String!
+  location: String
+  components: [Component]
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+}
+
+# Component model
+type Component {
+  type: String!
+  field: String!
+  label: String!
+  unit: String
+  min: Float
+  max: Float
+}
+
+# Device status
+type DeviceStatus {
+  deviceId: String!
+  status: String!
+  timestamp: AWSDateTime!
+}
+
+# Device status input for updates
+input DeviceStatusInput {
+  status: String!
+  timestamp: AWSDateTime
+}

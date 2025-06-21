@@ -12,7 +12,6 @@ export class AppSyncStack extends cdk.Stack {
     super(scope, id, props);
 
     // Create mock Lambda functions for development
-    // In production, these would be imported from SSM parameters
     const getUIPageFn = new lambda.Function(this, 'GetUIPageFunction', {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'get-ui-page.handler',
@@ -55,7 +54,7 @@ export class AppSyncStack extends cdk.Stack {
       `),
     });
 
-    // Store Lambda ARNs in SSM for other stacks to use with unique names
+    // Store Lambda ARNs in SSM for other stacks to use
     new ssm.StringParameter(this, 'GetUIPageArnParam', {
       parameterName: `/lambda/${this.stackName}/get-ui-page-arn`,
       stringValue: getUIPageFn.functionArn,
@@ -93,17 +92,11 @@ export class AppSyncStack extends cdk.Stack {
     const controlDeviceSource = api.addLambdaDataSource('ControlDeviceSource', controlDeviceFn);
     const getAnalyticsSource = api.addLambdaDataSource('GetAnalyticsSource', getAnalyticsFn);
 
-<<<<<<< Updated upstream
     // Resolver bindings
     getUIPageSource.createResolver('GetUIPageResolver', {
-=======
-    // Create resolvers with proper id and props parameters
-    uiJsonDataSource.createResolver('GetDeviceUIResolver', {
->>>>>>> Stashed changes
       typeName: 'Query',
       fieldName: 'getUiPage',
     });
-<<<<<<< Updated upstream
 
     controlDeviceSource.createResolver('ControlDeviceResolver', {
       typeName: 'Mutation',
@@ -111,15 +104,9 @@ export class AppSyncStack extends cdk.Stack {
     });
 
     getAnalyticsSource.createResolver('GetAnalyticsResolver', {
-=======
-    
-    batchUiJsonDataSource.createResolver('BatchGetDeviceUIsResolver', {
->>>>>>> Stashed changes
       typeName: 'Query',
       fieldName: 'getAnalytics',
     });
-
-    // Subscription resolver removed to fix deployment issues
 
     // Store API URL in SSM for other stacks to use
     new ssm.StringParameter(this, 'GraphQLApiUrlParam', {

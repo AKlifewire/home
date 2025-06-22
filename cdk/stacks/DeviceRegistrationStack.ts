@@ -96,13 +96,19 @@ export class DeviceRegistrationStack extends cdk.Stack {
       resources: ['*']
     }));
 
-    // Create API Gateway with specific CORS settings
+    // Get frontend domain from SSM
+    const frontendDomain = ssm.StringParameter.valueForStringParameter(
+      this, 
+      `/SmartHome/${envName}/FRONTEND_DOMAIN`
+    );
+
+    // Create API Gateway with dynamic CORS settings
     this.deviceRegistrationApi = new apigateway.RestApi(this, 'DeviceRegistrationApi', {
       restApiName: `device-registration-api-${envName}`,
       description: 'API for device registration',
       defaultCorsPreflightOptions: {
         allowOrigins: [
-          'https://main.d29b8yerucsuvm.amplifyapp.com',
+          frontendDomain,
           'http://localhost:3000',
           'http://localhost:*'
         ],

@@ -39,7 +39,13 @@ export class UiJsonStack extends cdk.Stack {
             s3.HttpMethods.POST,
             s3.HttpMethods.HEAD,
           ],
-          allowedOrigins: ['*'], // In production, restrict to your domains
+          allowedOrigins: [
+            ssm.StringParameter.valueForStringParameter(
+              this, 
+              `/SmartHome/${envName}/FRONTEND_DOMAIN`
+            ),
+            'http://localhost:3000'
+          ],
           allowedHeaders: ['*'],
           exposedHeaders: ['ETag', 'x-amz-meta-custom-header'],
         },

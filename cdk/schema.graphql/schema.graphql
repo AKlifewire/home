@@ -1,31 +1,37 @@
 type Query {
-  getUiPage(pageName: String!, deviceType: String, userRole: String): UIPageResponse!
-  getAnalytics(deviceId: String!, timeRange: String!): AnalyticsResponse!
+  getUiPage(deviceId: String!): UiPageResponse
+  getAnalytics(deviceId: String!): AnalyticsResponse
 }
 
 type Mutation {
-  controlDevice(deviceId: String!, command: String!, value: String!): CommandResponse!
+  controlDevice(deviceId: String!, command: String!, value: String): DeviceResponse
 }
 
-type UIPageResponse {
+type UiPageResponse {
   success: Boolean!
-  message: String
-  data: AWSJSON
+  data: UiPageData
 }
 
-type CommandResponse {
+type UiPageData {
+  title: String
+  components: [String]
+}
+
+type DeviceResponse {
   success: Boolean!
   message: String
-  data: AWSJSON
 }
 
 type AnalyticsResponse {
   success: Boolean!
-  message: String
-  data: AWSJSON
+  data: AnalyticsData
 }
 
-schema {
-  query: Query
-  mutation: Mutation
+type AnalyticsData {
+  metrics: [Metric]
+}
+
+type Metric {
+  date: String
+  value: Float
 }

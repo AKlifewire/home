@@ -1,8 +1,83 @@
+# CDK
+cdk.out/
 *.js
-!jest.config.js
+*.js.map
 *.d.ts
-node_modules
+node_modules/
 
-# CDK asset staging directory
-.cdk.staging
-cdk.out
+# Environment files
+.env
+.env.local
+.env.production
+.env.staging
+
+# AWS
+.aws/
+
+# Build artifacts
+build/
+dist/
+*.zip
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# nyc test coverage
+.nyc_output
+
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Frontend specific
+frontend/.dart_tool/
+frontend/build/
+frontend/.flutter-plugins
+frontend/.flutter-plugins-dependencies
+frontend/.packages
+frontend/.pub-cache/
+frontend/.pub/
+frontend/ios/Pods/
+frontend/ios/.symlinks/
+frontend/android/.gradle/
+frontend/android/captures/
+frontend/android/gradlew
+frontend/android/gradlew.bat
+frontend/android/local.properties
+frontend/android/**/GeneratedPluginRegistrant.java
+frontend/android/key.properties
+frontend/*.zip
+
+# Temporary files
+-p/
+*.tmp
+*.temp

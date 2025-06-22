@@ -1,7 +1,0 @@
-{
-  "allowOrigins": ["https://main.d29b8yerucsuvm.amplifyapp.com", "http://localhost:*"],
-  "allowMethods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  "allowHeaders": ["Content-Type", "X-Amz-Date", "Authorization", "X-Api-Key", "X-Amz-Security-Token"],
-  "allowCredentials": true,
-  "maxAge": 3600
-}

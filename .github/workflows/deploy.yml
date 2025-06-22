@@ -1,0 +1,117 @@
+name: Deploy Smart Home IoT Platform
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  AWS_REGION: us-east-1
+  NODE_VERSION: '18'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run TypeScript checks
+        run: npx tsc --noEmit
+      
+      - name: Run tests
+        run: npm test
+        continue-on-error: true
+
+  deploy-dev:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Deploy CDK stacks
+        run: |
+          npx cdk bootstrap
+          npx cdk deploy --all --require-approval never --context envName=dev
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.16.0'
+      
+      - name: Build Flutter web
+        run: |
+          cd frontend
+          flutter pub get
+          flutter build web --release
+      
+      - name: Deploy Frontend
+        run: |
+          aws s3 sync frontend/build/web s3://$(aws ssm get-parameter --name "/SmartHome/dev/FRONTEND_BUCKET" --query "Parameter.Value" --output text) --delete
+          aws cloudfront create-invalidation --distribution-id $(aws ssm get-parameter --name "/SmartHome/dev/CLOUDFRONT_ID" --query "Parameter.Value" --output text) --paths "/*"
+
+  e2e-tests:
+    needs: deploy-dev
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Install test dependencies
+        run: |
+          cd tests
+          npm install
+      
+      - name: Run E2E tests
+        run: |
+          cd tests
+          node api-integration.test.js
+          node e2e-integration.test.js
+      
+      - name: Notify on failure
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+          text: 'Smart Home IoT Platform deployment failed!'

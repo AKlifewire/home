@@ -5,6 +5,10 @@ import { IoTStack } from './stacks/IoTStack';
 import { AppSyncStack } from './stacks/AppSyncStack';
 import { AmplifyHostingStack } from './stacks/AmplifyHostingStack';
 import { UiJsonStack } from './stacks/UiJsonStack';
+import { SecurityStack } from './stacks/SecurityStack';
+import { MonitoringStack } from './stacks/MonitoringStack';
+import { WebSocketStack } from './stacks/WebSocketStack';
+import { AnalyticsStack } from './stacks/AnalyticsStack';
 
 const app = new cdk.App();
 
@@ -57,9 +61,34 @@ const uiJsonStack = new UiJsonStack(app, `${envName}-UiJsonStack`, {
   envName,
 });
 
+// Enterprise stacks
+const securityStack = new SecurityStack(app, `${envName}-SecurityStack`, {
+  ...baseProps,
+  envName,
+});
+
+const monitoringStack = new MonitoringStack(app, `${envName}-MonitoringStack`, {
+  ...baseProps,
+  envName,
+  alertEmail: 'admin@yourdomain.com',
+});
+
+const webSocketStack = new WebSocketStack(app, `${envName}-WebSocketStack`, {
+  ...baseProps,
+  envName,
+});
+
+const analyticsStack = new AnalyticsStack(app, `${envName}-AnalyticsStack`, {
+  ...baseProps,
+  envName,
+});
+
 // Dependencies
 appSyncStack.addDependency(authStack);
 appSyncStack.addDependency(storageStack);
 uiJsonStack.addDependency(amplifyStack);
+monitoringStack.addDependency(appSyncStack);
+webSocketStack.addDependency(authStack);
+analyticsStack.addDependency(iotStack);
 
 app.synth();

@@ -1,0 +1,174 @@
+{
+  "version": "1.0",
+  "metadata": {
+    "deviceId": "unknown-device",
+    "lastUpdated": "2025-06-14T20:17:29.907Z"
+  },
+  "screens": [
+    {
+      "id": "main",
+      "title": "3-Phase Energy Meter",
+      "widgets": [
+        {
+          "type": "header",
+          "componentId": "header",
+          "properties": {
+            "title": "3-Phase Energy Meter",
+            "subtitle": "EM3000"
+          }
+        },
+        {
+          "type": "gauge",
+          "componentId": "voltage-gauge",
+          "properties": {
+            "title": "Voltage",
+            "topic": "iot/device/energy-meter/voltage",
+            "unit": "V",
+            "min": 0,
+            "max": 500,
+            "warning": 440,
+            "critical": 460
+          }
+        },
+        {
+          "type": "gauge",
+          "componentId": "current-gauge",
+          "properties": {
+            "title": "Current",
+            "topic": "iot/device/energy-meter/current",
+            "unit": "A",
+            "min": 0,
+            "max": 100,
+            "warning": 80,
+            "critical": 90
+          }
+        },
+        {
+          "type": "gauge",
+          "componentId": "power-gauge",
+          "properties": {
+            "title": "Power",
+            "topic": "iot/device/energy-meter/power",
+            "unit": "kW",
+            "min": 0,
+            "max": 50
+          }
+        },
+        {
+          "type": "chart",
+          "componentId": "measurements-chart",
+          "properties": {
+            "title": "Real-time Measurements",
+            "chartType": "line",
+            "timeRange": "1h",
+            "metrics": [
+              {
+                "id": "voltage",
+                "label": "Voltage",
+                "unit": "V",
+                "min": 0,
+                "max": 500,
+                "warning": 440,
+                "critical": 460
+              },
+              {
+                "id": "current",
+                "label": "Current",
+                "unit": "A",
+                "min": 0,
+                "max": 100,
+                "warning": 80,
+                "critical": 90
+              },
+              {
+                "id": "power",
+                "label": "Power",
+                "unit": "kW",
+                "min": 0,
+                "max": 50
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "components": [
+    {
+      "type": "header",
+      "title": "3-Phase Energy Meter",
+      "config": {
+        "subtitle": "EM3000"
+      }
+    },
+    {
+      "type": "gauge",
+      "title": "Voltage",
+      "topic": "iot/device/energy-meter/voltage",
+      "config": {
+        "unit": "V",
+        "min": 0,
+        "max": 500,
+        "warning": 440,
+        "critical": 460
+      }
+    },
+    {
+      "type": "gauge",
+      "title": "Current",
+      "topic": "iot/device/energy-meter/current",
+      "config": {
+        "unit": "A",
+        "min": 0,
+        "max": 100,
+        "warning": 80,
+        "critical": 90
+      }
+    },
+    {
+      "type": "gauge",
+      "title": "Power",
+      "topic": "iot/device/energy-meter/power",
+      "config": {
+        "unit": "kW",
+        "min": 0,
+        "max": 50
+      }
+    },
+    {
+      "type": "chart",
+      "title": "Real-time Measurements",
+      "config": {
+        "chartType": "line",
+        "timeRange": "1h",
+        "metrics": [
+          {
+            "id": "voltage",
+            "label": "Voltage",
+            "unit": "V",
+            "min": 0,
+            "max": 500,
+            "warning": 440,
+            "critical": 460
+          },
+          {
+            "id": "current",
+            "label": "Current",
+            "unit": "A",
+            "min": 0,
+            "max": 100,
+            "warning": 80,
+            "critical": 90
+          },
+          {
+            "id": "power",
+            "label": "Power",
+            "unit": "kW",
+            "min": 0,
+            "max": 50
+          }
+        ]
+      }
+    }
+  ]
+}

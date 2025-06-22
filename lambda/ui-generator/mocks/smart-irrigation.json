@@ -1,0 +1,36 @@
+{
+  "type": "smart-irrigation",
+  "config": {
+    "name": "Garden Irrigation Controller",
+    "model": "IRCTL-100",
+    "deviceId": "irr-001",
+    "zones": [
+      {
+        "id": "zone1",
+        "name": "Front Lawn",
+        "maxDuration": 30
+      },
+      {
+        "id": "zone2",
+        "name": "Back Garden",
+        "maxDuration": 45
+      },
+      {
+        "id": "zone3",
+        "name": "Flower Beds",
+        "maxDuration": 20
+      }
+    ],
+    "sensors": {
+      "moisture": {
+        "unit": "%",
+        "ranges": {
+          "min": 0,
+          "max": 100,
+          "warning": 30,
+          "critical": 20
+        }
+      }
+    }
+  }
+}

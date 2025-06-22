@@ -1,0 +1,19 @@
+{
+  "name": "smart-home-e2e-tests",
+  "version": "1.0.0",
+  "description": "E2E Integration Tests for Smart Home IoT Platform",
+  "scripts": {
+    "test": "node e2e-integration.test.js",
+    "test:api": "node api-integration.test.js",
+    "test:frontend": "node frontend-e2e.test.js",
+    "test:all": "npm run test && npm run test:api"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.1400.0",
+    "axios": "^1.4.0",
+    "puppeteer": "^21.0.0"
+  },
+  "devDependencies": {
+    "jest": "^29.0.0"
+  }
+}
